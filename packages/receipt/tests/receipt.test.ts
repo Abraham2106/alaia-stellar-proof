@@ -1,0 +1,74 @@
+import { describe, expect, it } from "vitest";
+import {
+  canonicalReceiptBytes,
+  receiptMemoHash,
+  type Receipt,
+} from "../src/index.ts";
+
+function sampleReceipt(overrides: Partial<Receipt> = {}): Receipt {
+  return {
+    policyVersion: "1",
+    destination: "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+    asset: "native",
+    amountStroops: "10000000",
+    feeStroops: "100",
+    decision: "allow",
+    reasons: ["within_budget"],
+    ...overrides,
+  };
+}
+
+describe("receiptMemoHash", () => {
+  it("is stable for the same logical receipt", () => {
+    const receipt = sampleReceipt();
+    const a = receiptMemoHash(receipt);
+    const b = receiptMemoHash(receipt);
+    expect(a).toBe(b);
+    expect(a).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("changes when destination changes", () => {
+    const base = sampleReceipt();
+    const other = sampleReceipt({
+      destination: "GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    });
+    expect(receiptMemoHash(other)).not.toBe(receiptMemoHash(base));
+  });
+
+  it("changes when amountStroops changes", () => {
+    const base = sampleReceipt();
+    const other = sampleReceipt({ amountStroops: "9999999" });
+    expect(receiptMemoHash(other)).not.toBe(receiptMemoHash(base));
+  });
+
+  it("changes when decision changes", () => {
+    const base = sampleReceipt();
+    const other = sampleReceipt({ decision: "deny" });
+    expect(receiptMemoHash(other)).not.toBe(receiptMemoHash(base));
+  });
+
+  it("is independent of reason order (reasons are sorted before hash)", () => {
+    const first = sampleReceipt({ reasons: ["z_reason", "a_reason"] });
+    const second = sampleReceipt({ reasons: ["a_reason", "z_reason"] });
+    expect(receiptMemoHash(first)).toBe(receiptMemoHash(second));
+  });
+
+  it("returns lowercase hex of length 64", () => {
+    const hash = receiptMemoHash(sampleReceipt());
+    expect(hash).toHaveLength(64);
+    expect(hash).toBe(hash.toLowerCase());
+  });
+});
+
+describe("canonicalReceiptBytes", () => {
+  it("emits UTF-8 JSON with sorted keys and no whitespace", () => {
+    const bytes = canonicalReceiptBytes(
+      sampleReceipt({ reasons: ["b", "a"] }),
+    );
+    const text = new TextDecoder().decode(bytes);
+    expect(text).not.toMatch(/\s/);
+    expect(text).toBe(
+      '{"amountStroops":"10000000","asset":"native","decision":"allow","destination":"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF","feeStroops":"100","policyVersion":"1","reasons":["a","b"]}',
+    );
+  });
+});
