@@ -26,7 +26,7 @@ export function canonicalReceiptObject(receipt: Receipt): Record<string, unknown
 
   const reasons = [...receipt.reasons].sort();
 
-  return {
+  const canonical: Record<string, unknown> = {
     amountStroops: receipt.amountStroops,
     asset: receipt.asset,
     decision: receipt.decision,
@@ -35,6 +35,14 @@ export function canonicalReceiptObject(receipt: Receipt): Record<string, unknown
     policyVersion: receipt.policyVersion,
     reasons,
   };
+  if (receipt.judge) {
+    if (!/^[0-9a-f]{64}$/.test(receipt.judge.requestHash)) throw new Error("judge requestHash must be a SHA-256 hex digest");
+    canonical.judge = {
+      codes: [...receipt.judge.codes].sort(), label: receipt.judge.label,
+      model: receipt.judge.model, requestHash: receipt.judge.requestHash,
+    };
+  }
+  return Object.fromEntries(Object.entries(canonical).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
 }
 
 export function canonicalReceiptBytes(receipt: Receipt): Uint8Array {

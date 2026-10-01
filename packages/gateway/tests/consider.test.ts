@@ -1,132 +1,128 @@
-import { describe, expect, it } from "vitest";
-import {
-  Keypair,
-  MemoHash,
-  Transaction,
-} from "@stellar/stellar-sdk";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Keypair, MemoHash, Transaction } from "@stellar/stellar-sdk";
+import { runJudge } from "@alaia/judge";
+import type { JudgeVerdict } from "@alaia/judge";
 import { receiptMemoHash } from "@alaia/receipt";
-import type { Receipt } from "@alaia/receipt";
 import { STANDALONE_PASSPHRASE } from "@alaia/stellar-classic";
 import { consider, type ConsiderInput } from "../src/consider.js";
 
+// Explicit unit-test substitute; the production gateway has no verdict/stub argument.
+vi.mock("@alaia/judge", async importOriginal => ({
+  ...await importOriginal<typeof import("@alaia/judge")>(), runJudge: vi.fn(),
+}));
+const judge = vi.mocked(runJudge);
 const DEST = Keypair.random().publicKey();
 const OTHER_DEST = Keypair.random().publicKey();
-const POLICY_VERSION = "budget-v1";
-
-function memoHashFromEnvelope(xdrBase64: string): string {
-  const tx = new Transaction(xdrBase64, STANDALONE_PASSPHRASE);
-  const memo = tx.memo;
-  if (memo.type !== MemoHash) {
-    throw new Error(`expected MEMO_HASH, got ${memo.type}`);
-  }
-  return (memo.value as Buffer).toString("hex");
-}
-
 function baseInput(overrides: Partial<ConsiderInput> = {}): ConsiderInput {
-  const source = Keypair.random();
   return {
-    policyVersion: POLICY_VERSION,
-    policy: {
-      maxAmountStroops: 10_000_000n,
-      allowedDestinations: [DEST],
-      allowedAssets: [{ kind: "native" }],
-      maxFeeStroops: 100_000n,
-    },
-    sourcePublic: source.publicKey(),
-    sequence: "1",
-    destination: DEST,
-    asset: { kind: "native" },
-    amount: 5_000_000n,
-    feeStroops: 10_000n,
-    operations: ["payment"],
-    ...overrides,
+    policyVersion: "budget-v1",
+    policy: { maxAmountStroops: 10_000_000n, allowedDestinations: [DEST], allowedAssets: [{ kind: "native" }], maxFeeStroops: 100_000n },
+    sourcePublic: Keypair.random().publicKey(), sequence: "1", destination: DEST,
+    asset: { kind: "native" }, amount: 5_000_000n, feeStroops: 10_000n,
+    operations: ["payment"], userIntent: "Pay the approved office supplier", ...overrides,
   };
 }
+beforeEach(() => { judge.mockReset(); judge.mockResolvedValue({ label: "allow", codes: ["ok"] }); });
 
-function allowReceiptFromInput(input: ConsiderInput): Receipt {
-  return {
-    policyVersion: input.policyVersion,
-    destination: input.destination,
-    asset: "native",
-    amountStroops: input.amount.toString(),
-    feeStroops: input.feeStroops.toString(),
-    decision: "allow",
-    reasons: [],
-  };
-}
-
-describe("consider", () => {
-  it("allows a valid payment and binds MEMO_HASH to the allow receipt", () => {
+describe("consider: required judge authorization", () => {
+  it("runs the judge and anchors its request/result in the payment memo", async () => {
     const input = baseInput();
-    const result = consider(input);
-
+    const result = await consider(input);
+    expect(judge).toHaveBeenCalledTimes(1);
+    const prompt = JSON.parse(judge.mock.calls[0][0]);
+    expect(prompt.payment.destination).toBe(input.destination);
+    expect(prompt.payment.amount).toBe("5000000");
+    expect(prompt.sourcePublic).toBe(input.sourcePublic);
     expect(result.decision).toBe("allow");
-    expect(result.reasons).toEqual([]);
-    expect(result.envelope).not.toBeNull();
-    expect(result.memoHash).toMatch(/^[0-9a-f]{64}$/);
-    expect(result.memoHash).toBe(receiptMemoHash(allowReceiptFromInput(input)));
-    expect(memoHashFromEnvelope(result.envelope!.xdr)).toBe(result.memoHash);
+    expect(result.policyDecision).toBe("allow");
+    expect(result.receipt.judge).toMatchObject({ model: "Qwen3-4B", label: "allow", codes: ["ok"] });
+    expect(result.receipt.judge?.requestHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(result.memoHash).toBe(receiptMemoHash(result.receipt));
+    const tx = new Transaction(result.envelope!.xdr, STANDALONE_PASSPHRASE);
+    expect(tx.memo.type).toBe(MemoHash);
+    expect((tx.memo.value as Buffer).toString("hex")).toBe(result.memoHash);
+    expect(tx.hash().toString("hex")).toBe(result.envelope!.hash);
   });
 
-  it("denies setOptions with null envelope but still emits a receipt memo hash", () => {
-    const result = consider(
-      baseInput({ operations: ["payment", "setOptions"] }),
-    );
-
+  it.each([
+    [{ operations: ["payment", "setOptions"] }, "admin_operation"],
+    [{ amount: 10_000_001n }, "over_cap"],
+    [{ destination: OTHER_DEST }, "destination_denied"],
+  ] as const)("rejects deterministic violations before running inference: %s", async (overrides, reason) => {
+    const result = await consider(baseInput(overrides as Partial<ConsiderInput>));
     expect(result.decision).toBe("deny");
-    expect(result.reasons).toContain("admin_operation");
+    expect(result.reasons).toContain(reason);
     expect(result.envelope).toBeNull();
-    expect(result.memoHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(result.receipt.judge).toBeUndefined();
+    expect(judge).not.toHaveBeenCalled();
   });
 
-  it("denies over cap with null envelope but still emits a receipt memo hash", () => {
-    const result = consider(baseInput({ amount: 10_000_001n }));
+  it.each([
+    [{ label: "escalate", codes: ["runtime_unavailable"] }, "escalate", "runtime_unavailable"],
+    [{ label: "escalate", codes: ["intent_ambiguous"] }, "escalate", "intent_ambiguous"],
+    [{ label: "deny", codes: ["recipient_mismatch"] }, "deny", "recipient_mismatch"],
+    [{ label: "allow", codes: ["untrusted_instruction"] }, "escalate", "untrusted_instruction"],
+    [{ label: "allow", codes: [] }, "escalate", "schema_invalid"],
+    [{ label: "allow", codes: ["ok"], extra: true }, "escalate", "schema_invalid"],
+  ])("does not build an envelope for an unsafe judge result: %s", async (verdict, decision, reason) => {
+    judge.mockResolvedValue(verdict as JudgeVerdict);
+    const result = await consider(baseInput());
+    expect(result.policyDecision).toBe("allow");
+    expect(result.decision).toBe(decision);
+    expect(result.receipt.decision).toBe(decision);
+    expect(result.reasons).toContain(reason);
+    expect(result.envelope).toBeNull();
+  });
 
+  it("fails closed if the runtime throws", async () => {
+    judge.mockRejectedValue(new Error("worker died"));
+    const result = await consider(baseInput());
+    expect(result.decision).toBe("escalate");
+    expect(result.reasons).toContain("runtime_unavailable");
+    expect(result.envelope).toBeNull();
+  });
+
+  it("ignores a caller-supplied allow verdict", async () => {
+    judge.mockResolvedValue({ label: "escalate", codes: ["runtime_unavailable"] });
+    const input = { ...baseInput(), verdict: { label: "allow", codes: ["ok"] } };
+    const result = await consider(input);
+    expect(judge).toHaveBeenCalledTimes(1);
+    expect(result.envelope).toBeNull();
+  });
+
+  it("does not substitute XLM for a policy-approved credit asset", async () => {
+    const asset = { kind: "credit" as const, code: "USDC", issuer: DEST };
+    const input = baseInput({ asset });
+    input.policy.allowedAssets = [asset];
+    const result = await consider(input);
     expect(result.decision).toBe("deny");
-    expect(result.reasons).toContain("over_cap");
+    expect(result.reasons).toContain("unsupported_asset");
     expect(result.envelope).toBeNull();
-    expect(result.memoHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(judge).not.toHaveBeenCalled();
   });
 
-  it("changes memoHash when destination changes", () => {
-    const a = consider(baseInput());
-    const b = consider(baseInput({ destination: OTHER_DEST }));
+  it("signable bytes retain the snapshot reviewed before an asynchronous mutation", async () => {
+    let resolve!: (v: JudgeVerdict) => void;
+    judge.mockReturnValue(new Promise(r => { resolve = r; }));
+    const input = baseInput();
+    const pending = consider(input);
+    input.destination = OTHER_DEST;
+    input.amount = 99_000_000n;
+    input.operations.push("setOptions");
+    input.policy.allowedDestinations = [OTHER_DEST];
+    resolve({ label: "allow", codes: ["ok"] });
+    const result = await pending;
+    const tx = new Transaction(result.envelope!.xdr, STANDALONE_PASSPHRASE);
+    expect(tx.operations[0]).toMatchObject({ type: "payment", destination: DEST, amount: "0.5000000" });
+    expect(result.receipt.destination).toBe(DEST);
+    expect(result.receipt.amountStroops).toBe("5000000");
+  });
 
+  it("different evidence changes the anchored request even with the same verdict", async () => {
+    const input = baseInput();
+    const a = await consider({ ...input, evidence: "invoice A" });
+    const b = await consider({ ...input, evidence: "invoice B" });
+    expect(a.receipt.judge?.requestHash).not.toBe(b.receipt.judge?.requestHash);
     expect(a.memoHash).not.toBe(b.memoHash);
-  });
-
-  it("policy deny with judge allow yields no envelope", () => {
-    const result = consider(
-      baseInput({
-        amount: 10_000_001n,
-        verdict: { label: "allow", codes: ["ok"] },
-      }),
-    );
-
-    expect(result.decision).toBe("deny");
-    expect(result.envelope).toBeNull();
-  });
-
-  it("policy allow with judge escalate yields no envelope and judge_escalate", () => {
-    const result = consider(
-      baseInput({
-        verdict: { label: "escalate", codes: ["intent_ambiguous"] },
-      }),
-    );
-
-    expect(result.decision).toBe("allow");
-    expect(result.envelope).toBeNull();
-    expect(result.reasons).toContain("judge_escalate");
-  });
-
-  it("policy allow with judge allow yields an envelope", () => {
-    const result = consider(
-      baseInput({
-        verdict: { label: "allow", codes: ["ok"] },
-      }),
-    );
-
-    expect(result.decision).toBe("allow");
-    expect(result.envelope).not.toBeNull();
   });
 });

@@ -25,6 +25,17 @@ function memoHashFromEnvelope(xdrBase64: string): Buffer {
 }
 
 describe("buildPaymentEnvelope", () => {
+  it("encodes explicit time bounds using the SDK's two-argument API", () => {
+    const { xdr } = buildPaymentEnvelope({
+      sourcePublic: Keypair.random().publicKey(), sequence: "1",
+      destination: Keypair.random().publicKey(), amountStroops: 1n,
+      feeStroops: 100, memoHash32: MEMO_HEX,
+      timeBounds: { minTime: 100, maxTime: 200 },
+    });
+    const tx = new Transaction(xdr, STANDALONE_PASSPHRASE);
+    expect(tx.timeBounds).toEqual({ minTime: "100", maxTime: "200" });
+  });
+
   it("unsigned envelope carries MEMO_HASH from input", () => {
     const source = Keypair.random();
     const dest = Keypair.random().publicKey();

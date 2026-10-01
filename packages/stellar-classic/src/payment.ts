@@ -57,7 +57,10 @@ export function buildPaymentEnvelope(
     );
 
   if (params.timeBounds) {
-    builder = builder.setTimebounds(params.timeBounds);
+    builder = builder.setTimebounds(
+      params.timeBounds.minTime ?? 0,
+      params.timeBounds.maxTime ?? 0,
+    );
   } else {
     builder = builder.setTimeout(TimeoutInfinite);
   }

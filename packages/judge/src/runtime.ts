@@ -1,10 +1,7 @@
 import { parseJudgeVerdict } from "./parse.js";
-import { qvacJudgeRequest, type QvacJudgeRequest } from "./qvac.js";
+import { qvacJudgeRequest } from "./qvac.js";
+import { runQvacJudge } from "./qvac-runner.js";
 import type { JudgeVerdict } from "./types.js";
-
-type QvacRunnerModule = {
-  runQvacJudge: (request: QvacJudgeRequest) => Promise<string>;
-};
 
 function runtimeUnavailableVerdict(): JudgeVerdict {
   // DEC-0004: missing runtime escalates; it does not allow
@@ -22,11 +19,7 @@ export async function runJudge(prompt: string): Promise<JudgeVerdict> {
 
   try {
     const request = qvacJudgeRequest(prompt);
-    const runner = (await import("./qvac-runner.js")) as Partial<QvacRunnerModule>;
-    if (typeof runner.runQvacJudge !== "function") {
-      return runtimeUnavailableVerdict();
-    }
-    const text = await runner.runQvacJudge(request);
+    const text = await runQvacJudge(request);
     return parseJudgeVerdict(text);
   } catch {
     return runtimeUnavailableVerdict();

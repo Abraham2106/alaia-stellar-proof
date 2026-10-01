@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyJudge,
   parseJudgeVerdict,
@@ -43,6 +43,7 @@ describe("runJudge", () => {
   const previousQvac = process.env.ALAIA_QVAC;
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     if (previousQvac === undefined) {
       delete process.env.ALAIA_QVAC;
     } else {
@@ -59,8 +60,9 @@ describe("runJudge", () => {
     });
   });
 
-  it("escalates when ALAIA_QVAC=1 but the runner is not present", async () => {
+  it("escalates when ALAIA_QVAC=1 but the local server is unavailable", async () => {
     process.env.ALAIA_QVAC = "1";
+    vi.stubEnv("ALAIA_QVAC_URL", "http://127.0.0.1:1/v1");
     const verdict = await runJudge("pay office");
     expect(verdict).toEqual({
       label: "escalate",
@@ -72,7 +74,7 @@ describe("runJudge", () => {
 describe("qvacJudgeRequest", () => {
   it("pins model, temperature 0, and seed 42", () => {
     const req = qvacJudgeRequest("review this payment");
-    expect(req).toEqual({
+    expect(req).toMatchObject({
       model: "Qwen3-4B",
       responseFormat: "json_schema",
       temperature: 0,
