@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { applyJudge, parseJudgeVerdict, qvacJudgeRequest } from "../src/index.js";
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  applyJudge,
+  parseJudgeVerdict,
+  qvacJudgeRequest,
+  runJudge,
+} from "../src/index.js";
 
 describe("parseJudgeVerdict", () => {
   it("parses valid allow JSON", () => {
@@ -31,6 +36,36 @@ describe("applyJudge", () => {
   it("allows when policy and judge agree with ok", () => {
     const result = applyJudge("allow", { label: "allow", codes: ["ok"] });
     expect(result).toBe("allow");
+  });
+});
+
+describe("runJudge", () => {
+  const previousQvac = process.env.ALAIA_QVAC;
+
+  afterEach(() => {
+    if (previousQvac === undefined) {
+      delete process.env.ALAIA_QVAC;
+    } else {
+      process.env.ALAIA_QVAC = previousQvac;
+    }
+  });
+
+  it("escalates when ALAIA_QVAC is unset", async () => {
+    delete process.env.ALAIA_QVAC;
+    const verdict = await runJudge("pay office");
+    expect(verdict).toEqual({
+      label: "escalate",
+      codes: ["runtime_unavailable"],
+    });
+  });
+
+  it("escalates when ALAIA_QVAC=1 but the runner is not present", async () => {
+    process.env.ALAIA_QVAC = "1";
+    const verdict = await runJudge("pay office");
+    expect(verdict).toEqual({
+      label: "escalate",
+      codes: ["runtime_unavailable"],
+    });
   });
 });
 
