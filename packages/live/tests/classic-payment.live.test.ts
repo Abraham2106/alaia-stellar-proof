@@ -4,6 +4,7 @@ import { consider, type ConsiderInput } from "@alaia/gateway";
 import { assertLocalHorizon, LOCAL_HORIZON } from "@alaia/localnet";
 import {
   budgetAccountSetOptions,
+  buildPaymentEnvelope,
   signEnvelope,
 } from "@alaia/stellar-classic";
 
@@ -122,6 +123,40 @@ async function submitTransaction(
   return { hash: json.hash };
 }
 
+type HorizonSubmitResult = {
+  httpStatus: number;
+  hash?: string;
+  title?: string;
+  detail?: string;
+  resultCodes?: unknown;
+};
+
+async function submitTransactionRaw(
+  baseUrl: string,
+  xdr: string,
+): Promise<HorizonSubmitResult> {
+  const body = new URLSearchParams({ tx: xdr });
+  const res = await fetch(`${baseUrl}/transactions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+    signal: AbortSignal.timeout(30_000),
+  });
+  const json = (await res.json()) as {
+    hash?: string;
+    title?: string;
+    detail?: string;
+    extras?: { result_codes?: unknown };
+  };
+  return {
+    httpStatus: res.status,
+    hash: json.hash,
+    title: json.title,
+    detail: json.detail,
+    resultCodes: json.extras?.result_codes,
+  };
+}
+
 async function fetchTransaction(
   baseUrl: string,
   hash: string,
@@ -217,6 +252,26 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(acct.thresholds.med_threshold).toBe(2);
     const masterSigner = acct.signers.find((s) => s.key === budget.publicKey());
     expect(masterSigner?.weight).toBe(0);
+
+    // DEC-0004: weight-0 recovery must not authorize a payment (not a third vote).
+    const recoveryPayDest = Keypair.random().publicKey();
+    await fundViaFriendbot(LIVE_HORIZON, recoveryPayDest);
+    const recoveryOnlyPayment = buildPaymentEnvelope({
+      sourcePublic: budget.publicKey(),
+      sequence: acct.sequence,
+      destination: recoveryPayDest,
+      amountStroops: 1_000_000n,
+      feeStroops: 10_000,
+      memoHash32: "ab".repeat(32),
+    });
+    const recoverySigned = signEnvelope(recoveryOnlyPayment.xdr, recovery.secret());
+    const recoverySubmit = await submitTransactionRaw(LIVE_HORIZON, recoverySigned);
+    expect(recoverySubmit.hash, "weight-0 recovery must not produce a successful submit").toBeUndefined();
+    expect(recoverySubmit.httpStatus).toBeGreaterThanOrEqual(400);
+    const recoveryCodes = recoverySubmit.resultCodes as
+      | { transaction?: string }
+      | undefined;
+    expect(recoveryCodes?.transaction).toBe("tx_bad_auth");
 
     await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
     acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
