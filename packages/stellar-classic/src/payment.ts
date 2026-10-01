@@ -32,7 +32,9 @@ function stroopsToAmountString(amountStroops: bigint): string {
   if (amountStroops < 0n) {
     throw new Error("amountStroops must be non-negative");
   }
-  return amountStroops.toString(10);
+  const whole = amountStroops / 10_000_000n;
+  const frac = amountStroops % 10_000_000n;
+  return `${whole}.${frac.toString().padStart(7, "0")}`;
 }
 
 export function buildPaymentEnvelope(

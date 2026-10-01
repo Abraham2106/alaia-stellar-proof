@@ -1,18 +1,52 @@
 import { describe, expect, it } from "vitest";
 import { Keypair } from "@stellar/stellar-sdk";
 import { consider, type ConsiderInput } from "@alaia/gateway";
-import {
-  assertLocalHorizon,
-  LOCAL_HORIZON,
-} from "@alaia/localnet";
+import { assertLocalHorizon, LOCAL_HORIZON } from "@alaia/localnet";
 import {
   budgetAccountSetOptions,
   signEnvelope,
 } from "@alaia/stellar-classic";
 
+/** Quickstart publishes stellar-core on 11626; Horizon is usually 8000 on localhost. */
+async function isHorizonApi(baseUrl: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${baseUrl}/`, {
+      signal: AbortSignal.timeout(3_000),
+    });
+    if (!res.ok) {
+      return false;
+    }
+    const body = (await res.json()) as { _links?: { account?: unknown } };
+    return Boolean(body._links?.account);
+  } catch {
+    return false;
+  }
+}
+
+/** ALAIA_HORIZON first, then local Quickstart Horizon candidates (DEC-0004). */
+async function resolveLiveHorizon(): Promise<string> {
+  const fromEnv = process.env.ALAIA_HORIZON?.trim().replace(/\/+$/, "");
+  const candidates = [
+    ...(fromEnv ? [fromEnv] : []),
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    LOCAL_HORIZON,
+  ];
+  const seen = new Set<string>();
+  for (const base of candidates) {
+    if (seen.has(base)) {
+      continue;
+    }
+    seen.add(base);
+    if (await isHorizonApi(base)) {
+      return base;
+    }
+  }
+  return fromEnv ?? LOCAL_HORIZON;
+}
+
 const POLICY_VERSION = "budget-v1";
-const SKIP_MESSAGE =
-  "Local Horizon not reachable at http://127.0.0.1:8000 — start Quickstart (--local) and retry.";
+const LIVE_HORIZON = await resolveLiveHorizon();
 
 type HorizonAccount = {
   sequence: string;
@@ -21,14 +55,7 @@ type HorizonAccount = {
 };
 
 async function horizonResponds(baseUrl: string): Promise<boolean> {
-  try {
-    const res = await fetch(`${baseUrl}/`, {
-      signal: AbortSignal.timeout(3_000),
-    });
-    return res.status > 0;
-  } catch {
-    return false;
-  }
+  return isHorizonApi(baseUrl);
 }
 
 async function fundViaFriendbot(baseUrl: string, address: string): Promise<void> {
@@ -110,6 +137,17 @@ async function fetchTransaction(
 }
 
 function normalizeMemoHex(memo: string): string {
+  if (/^[0-9a-fA-F]{64}$/.test(memo)) {
+    return memo.toLowerCase();
+  }
+  try {
+    const fromBase64 = Buffer.from(memo, "base64");
+    if (fromBase64.length === 32) {
+      return fromBase64.toString("hex").toLowerCase();
+    }
+  } catch {
+    // fall through
+  }
   const hex = memo.startsWith("0x") ? memo.slice(2) : memo;
   return hex.toLowerCase();
 }
@@ -139,16 +177,19 @@ function policyInput(
   };
 }
 
-const horizonUp = await horizonResponds(LOCAL_HORIZON);
+const horizonUp = await horizonResponds(LIVE_HORIZON);
 
 describe("local Classic payment slice (Quickstart standalone)", () => {
   it("funds budget account, submits allowed payment, and denies without submit", async (ctx) => {
     if (!horizonUp) {
-      ctx.skip(true, SKIP_MESSAGE);
+      ctx.skip(
+        true,
+        `Local Horizon not reachable at ${LIVE_HORIZON} — start Quickstart (--local) and retry.`,
+      );
       return;
     }
 
-    assertLocalHorizon(LOCAL_HORIZON);
+    assertLocalHorizon(LIVE_HORIZON);
 
     const budget = Keypair.random();
     const signerA = Keypair.random();
@@ -157,8 +198,8 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     const allowedDest = Keypair.random().publicKey();
     const deniedDest = Keypair.random().publicKey();
 
-    await fundViaFriendbot(LOCAL_HORIZON, budget.publicKey());
-    let acct = await loadAccount(LOCAL_HORIZON, budget.publicKey());
+    await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
+    let acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
 
     const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
     const setup = buildBudgetAccountEnvelope({
@@ -170,15 +211,17 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
       feeStroops: 300,
     });
     const setupSigned = signEnvelope(setup.xdr, budget.secret());
-    await submitTransaction(LOCAL_HORIZON, setupSigned);
+    await submitTransaction(LIVE_HORIZON, setupSigned);
 
-    acct = await loadAccount(LOCAL_HORIZON, budget.publicKey());
+    acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
     expect(acct.thresholds.med_threshold).toBe(2);
     const masterSigner = acct.signers.find((s) => s.key === budget.publicKey());
     expect(masterSigner?.weight).toBe(0);
 
-    await fundViaFriendbot(LOCAL_HORIZON, budget.publicKey());
-    acct = await loadAccount(LOCAL_HORIZON, budget.publicKey());
+    await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
+    acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+
+    await fundViaFriendbot(LIVE_HORIZON, allowedDest);
 
     const allow = consider(
       policyInput(budget.publicKey(), acct.sequence, allowedDest),
@@ -188,9 +231,9 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
 
     let signed = signEnvelope(allow.envelope!.xdr, signerA.secret());
     signed = signEnvelope(signed, signerB.secret());
-    const { hash: paymentHash } = await submitTransaction(LOCAL_HORIZON, signed);
+    const { hash: paymentHash } = await submitTransaction(LIVE_HORIZON, signed);
 
-    const onChain = await fetchTransaction(LOCAL_HORIZON, paymentHash);
+    const onChain = await fetchTransaction(LIVE_HORIZON, paymentHash);
     expect(onChain.memo_type).toBe("hash");
     expect(normalizeMemoHex(onChain.memo)).toBe(allow.memoHash);
 
