@@ -9,7 +9,7 @@ Estado: respuestas del 2026-10-01. El gate de implementación sigue cerrado hast
 | Notify | `done` / `killed` / hard-block. Cero preguntas mid-run |
 | Panorama | `Idea.md` |
 | Restricciones | `alaia-proof-context.md` |
-| IA local | Adaptador QVAC de https://github.com/Abraham2106/Albatross |
+| IA local | Núcleo QVAC en este repo (JSON schema; código decide; el modelo no firma) |
 | Código | Subagentes worker cuando empiece la implementación |
 
 ### 1. Qué afirma el sistema
@@ -30,7 +30,7 @@ TypeScript. Ver `DEC-0003`.
 
 ### 5. API pública mínima
 
-Proponer un pago canónico, evaluarlo (reglas y, si pasan, Qwen), firmar solo si la política lo permite, devolver el receipt. No es API: UI, x402, Soroban, Whisper, dominio hospitalario.
+Proponer un pago canónico, evaluarlo (reglas y, si pasan, Qwen), firmar solo si la política lo permite, devolver el receipt. No es API: UI de producto, x402, Soroban.
 
 ### 6. Grader
 
@@ -38,7 +38,7 @@ Quickstart local. Compara configuración de cuenta en ledger, rechazo de mutacio
 
 ### 7. No-goals de esta ola
 
-Mainnet, x402, Soroban como camino feliz, segundo judge, replay universal, UI de Albatross, custodia de una wallet principal.
+Mainnet, x402, Soroban como camino feliz, segundo judge, replay universal, UI de producto ajena, custodia de una wallet principal.
 
 ### 8. Secrets
 

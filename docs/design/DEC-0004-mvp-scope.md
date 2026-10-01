@@ -17,7 +17,7 @@ Demo de hackathon, en este orden:
 
 ## Why
 
-El humano eligió demo Classic, quickstart offline, cuenta 2-de-2 con recuperación, adaptador Albatross, y Qwen solo al principio. El hito “dos judges” del formulario queda sustituido por la respuesta específica de judges. El contexto (`alaia-proof-context.md` §14) retira “proof of inference” y replay universal.
+El humano eligió demo Classic, quickstart offline, cuenta 2-de-2 con recuperación, núcleo QVAC en este repo, y Qwen solo al principio. El hito “dos judges” del formulario queda sustituido por la respuesta específica de judges. El contexto (`alaia-proof-context.md` §14) retira “proof of inference” y replay universal.
 
 ## Consequences
 

@@ -6,11 +6,11 @@
 
 ## Decision
 
-El MVP es **TypeScript**. Stellar Classic vía `@stellar/stellar-sdk`. Inferencia local vía el adaptador QVAC del repo [Albatross](https://github.com/Abraham2106/Albatross), sin su UI de hospitales.
+El MVP es **TypeScript**. Stellar Classic vía `@stellar/stellar-sdk`. Inferencia local mediante un **núcleo QVAC en este repo**: salida con JSON schema; el código determinista decide; el modelo no firma ni escribe el ledger.
 
 ## Why
 
-QVAC publica aplicaciones JS/Python. Albatross ya es Electron + TypeScript sobre `@qvac/sdk`. Un núcleo Rust obligaría un puente para el mismo runtime y parte el hackathon en dos procesos. Classic (envelope, multisig, memo, Horizon contra quickstart) está cubierto por el SDK de TypeScript.
+Las aplicaciones QVAC son JS/TypeScript (y Python en otros perfiles). Classic (envelope, multisig, memo, Horizon contra quickstart) está cubierto por el SDK de TypeScript. Un núcleo Rust obligaría un puente para el mismo runtime del judge y parte el hackathon en dos procesos.
 
 ## Consequences
 
@@ -18,10 +18,10 @@ Rust no es el lenguaje del MVP. Si un seam posterior exige XDR a mano o un binar
 
 ## Forbidden
 
-Reimplementar Whisper, el dominio de hospitales, o la UI de Albatross. El LLM no firma ni escribe el ledger.
+Importar o copiar la UI o el dominio de un producto ajeno. El LLM no firma ni escribe el ledger.
 
 ## Cite in code
 
 ```text
-// DEC-0003: TypeScript; Stellar SDK + QVAC adapter, not a Rust core
+// DEC-0003: TypeScript; Stellar SDK + in-repo QVAC core, not a Rust core
 ```
