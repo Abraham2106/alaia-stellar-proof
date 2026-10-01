@@ -1,0 +1,23 @@
+{
+  "name": "@alaia/gateway",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@alaia/policy": "file:../policy",
+    "@alaia/receipt": "file:../receipt",
+    "@alaia/stellar-classic": "file:../stellar-classic"
+  },
+  "devDependencies": {
+    "@stellar/stellar-sdk": "13.3.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
