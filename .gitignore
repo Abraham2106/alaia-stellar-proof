@@ -1,0 +1,34 @@
+# Orchestrator worktrees and local agent harness (not product)
+orchestration/
+.cursor/
+AGENTS.md
+FEATURE-PREPARATION.md
+TASK-PLAN.md
+docs/field-guide/
+docs/contracts/agent-roles.md
+docs/contracts/handoff.md
+docs/contracts/task-tree.schema.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Rust
+target/
+**/*.rs.bk
+
+# Node
+node_modules/
+dist/
+
+# Python
+.venv/
+__pycache__/
