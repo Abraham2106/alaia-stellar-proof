@@ -11,6 +11,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@alaia/judge": "file:../judge",
     "@alaia/policy": "file:../policy",
     "@alaia/receipt": "file:../receipt",
     "@alaia/stellar-classic": "file:../stellar-classic"

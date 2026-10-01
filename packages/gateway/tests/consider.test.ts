@@ -94,4 +94,39 @@ describe("consider", () => {
 
     expect(a.memoHash).not.toBe(b.memoHash);
   });
+
+  it("policy deny with judge allow yields no envelope", () => {
+    const result = consider(
+      baseInput({
+        amount: 10_000_001n,
+        verdict: { label: "allow", codes: ["ok"] },
+      }),
+    );
+
+    expect(result.decision).toBe("deny");
+    expect(result.envelope).toBeNull();
+  });
+
+  it("policy allow with judge escalate yields no envelope and judge_escalate", () => {
+    const result = consider(
+      baseInput({
+        verdict: { label: "escalate", codes: ["intent_ambiguous"] },
+      }),
+    );
+
+    expect(result.decision).toBe("allow");
+    expect(result.envelope).toBeNull();
+    expect(result.reasons).toContain("judge_escalate");
+  });
+
+  it("policy allow with judge allow yields an envelope", () => {
+    const result = consider(
+      baseInput({
+        verdict: { label: "allow", codes: ["ok"] },
+      }),
+    );
+
+    expect(result.decision).toBe("allow");
+    expect(result.envelope).not.toBeNull();
+  });
 });
