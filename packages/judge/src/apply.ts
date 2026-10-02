@@ -17,13 +17,12 @@ export function applyJudge(
 
   if (verdict.label === "allow") {
     const onlyOk =
-      verdict.codes.length === 0 ||
-      (verdict.codes.length === 1 && verdict.codes[0] === "ok");
+      verdict.codes.length === 1 && verdict.codes[0] === "ok";
     if (onlyOk) {
       return "allow";
     }
     return "escalate";
   }
 
-  return "escalate";
+  return verdict.label === "deny" ? "deny" : "escalate";
 }

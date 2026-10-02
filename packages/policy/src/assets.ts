@@ -7,7 +7,7 @@ export function assetsEqual(a: Asset, b: Asset): boolean {
   if (a.kind === "native") {
     return true;
   }
-  return a.code === b.code && a.issuer === b.issuer;
+  return b.kind === "credit" && a.code === b.code && a.issuer === b.issuer;
 }
 
 export function assetAllowed(asset: Asset, allowed: readonly Asset[]): boolean {
