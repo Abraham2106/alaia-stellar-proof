@@ -1,6 +1,12 @@
 export { assess } from "./assess.js";
 export { CORPUS_PAYMENTS, DESTINATION_ALLOWLIST } from "./corpus.js";
 export {
+  QUICKSTART_FIXTURE_DESTINATION_PUBLIC,
+  QUICKSTART_FIXTURE_DESTINATION_SEED,
+  QUICKSTART_FIXTURE_SOURCE_PUBLIC,
+  QUICKSTART_FIXTURE_SOURCE_SEED,
+} from "./quickstartFixture.js";
+export {
   accountsInGraph,
   corpusEdges,
   edgeCount,

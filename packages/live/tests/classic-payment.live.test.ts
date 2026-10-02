@@ -3,6 +3,11 @@ import { Keypair } from "@stellar/stellar-sdk";
 import { consider, considerWithGraph, type ConsiderInput } from "@alaia/gateway";
 import { assertLocalHorizon, LOCAL_HORIZON } from "@alaia/localnet";
 import {
+  QUICKSTART_FIXTURE_DESTINATION_PUBLIC,
+  QUICKSTART_FIXTURE_SOURCE_PUBLIC,
+  QUICKSTART_FIXTURE_SOURCE_SEED,
+} from "@alaia/rag-graph";
+import {
   budgetAccountSetOptions,
   buildPaymentEnvelope,
   signEnvelope,
@@ -210,6 +215,12 @@ function normalizeMemoHex(memo: string): string {
   return hex.toLowerCase();
 }
 
+function keypairFromFixtureSeed(seedUtf8: string): Keypair {
+  const raw = Buffer.alloc(32);
+  raw.write(seedUtf8, "utf8");
+  return Keypair.fromRawEd25519Seed(raw);
+}
+
 function policyInput(
   sourcePublic: string,
   sequence: string,
@@ -396,5 +407,71 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
       budget.publicKey(),
     );
     expect(paymentsAfter).toBe(paymentsBefore);
+  });
+
+  it("graph gate: known corpus edge submits allowed payment on local Horizon", async (ctx) => {
+    if (!horizonUp) {
+      ctx.skip(
+        true,
+        `Local Horizon not reachable at ${LIVE_HORIZON} — start Quickstart (--local) and retry.`,
+      );
+      return;
+    }
+
+    assertLocalHorizon(LIVE_HORIZON);
+
+    const budget = keypairFromFixtureSeed(QUICKSTART_FIXTURE_SOURCE_SEED);
+    expect(budget.publicKey()).toBe(QUICKSTART_FIXTURE_SOURCE_PUBLIC);
+
+    const signerA = Keypair.random();
+    const signerB = Keypair.random();
+    const recovery = Keypair.random();
+    const fixtureDest = QUICKSTART_FIXTURE_DESTINATION_PUBLIC;
+
+    await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
+    await fundViaFriendbot(LIVE_HORIZON, fixtureDest);
+
+    let acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+
+    const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
+    const setup = buildBudgetAccountEnvelope({
+      sourcePublic: budget.publicKey(),
+      sequence: acct.sequence,
+      signerA: signerA.publicKey(),
+      signerB: signerB.publicKey(),
+      recoverySigner: recovery.publicKey(),
+      feeStroops: 300,
+    });
+    const setupSigned = signEnvelope(setup.xdr, budget.secret());
+    await submitTransaction(LIVE_HORIZON, setupSigned);
+
+    acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+    expect(acct.thresholds.med_threshold).toBe(2);
+
+    const graphAllow = considerWithGraph(
+      policyInput(budget.publicKey(), acct.sequence, fixtureDest),
+      { from: budget.publicKey(), to: fixtureDest },
+    );
+    expect(graphAllow.decision).toBe("allow");
+    expect(graphAllow.envelope).not.toBeNull();
+    expect(graphAllow.reasons).not.toContain("graph_unknown");
+
+    let signed = signEnvelope(graphAllow.envelope!.xdr, signerA.secret());
+    signed = signEnvelope(signed, signerB.secret());
+    const { hash: paymentHash } = await submitTransaction(LIVE_HORIZON, signed);
+
+    const onChain = await fetchTransaction(LIVE_HORIZON, paymentHash);
+    expect(onChain.memo_type).toBe("hash");
+    expect(normalizeMemoHex(onChain.memo)).toBe(graphAllow.memoHash);
+
+    const denySetOptions = considerWithGraph(
+      policyInput(budget.publicKey(), acct.sequence, fixtureDest, {
+        operations: ["payment", "setOptions"],
+      }),
+      { from: budget.publicKey(), to: fixtureDest },
+    );
+    expect(denySetOptions.decision).toBe("deny");
+    expect(denySetOptions.envelope).toBeNull();
+    expect(denySetOptions.reasons).toContain("admin_operation");
   });
 });

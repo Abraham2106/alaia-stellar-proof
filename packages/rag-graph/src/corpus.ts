@@ -1,4 +1,8 @@
 import type { CorpusPayment } from "./types.js";
+import {
+  QUICKSTART_FIXTURE_DESTINATION_PUBLIC,
+  QUICKSTART_FIXTURE_SOURCE_PUBLIC,
+} from "./quickstartFixture.js";
 
 /** Fixed allowlist of corpus payment destinations (valid ed25519 strkeys). */
 export const DESTINATION_ALLOWLIST: readonly [string, string, string] = [
@@ -82,5 +86,13 @@ export const CORPUS_PAYMENTS: readonly CorpusPayment[] = [
     amountStroops: "180000000",
     feeStroops: "100",
     memo: "annual software license",
+  },
+  {
+    from: QUICKSTART_FIXTURE_SOURCE_PUBLIC,
+    to: QUICKSTART_FIXTURE_DESTINATION_PUBLIC,
+    asset: "native",
+    amountStroops: "5000000",
+    feeStroops: "10000",
+    memo: "local Quickstart fixture payment",
   },
 ];
