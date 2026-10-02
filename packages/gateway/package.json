@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@alaia/judge": "file:../judge",
+    "@alaia/rag-graph": "file:../rag-graph",
     "@alaia/policy": "file:../policy",
     "@alaia/receipt": "file:../receipt",
     "@alaia/stellar-classic": "file:../stellar-classic"
