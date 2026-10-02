@@ -1,6 +1,8 @@
 # REQ-0001 — Producto (preflight)
 
-Estado: respuestas del 2026-10-01. El gate de implementación sigue cerrado hasta el crate/módulo graph y el runner del grader.
+Estado: respuestas del 2026-10-01. Gate de reparación abierto por DEC-0007 a
+DEC-0012 y FEATURE-PREPARATION ready. Esto permite implementar las hojas
+especificadas; no certifica aceptación del MVP ni integración real.
 
 ## Cerrado
 
