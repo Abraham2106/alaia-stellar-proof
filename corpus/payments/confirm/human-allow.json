@@ -1,0 +1,13 @@
+{
+  "id": "human-allow",
+  "split": "confirm",
+  "walletClass": "human",
+  "tool": "payment",
+  "gold": {
+    "recipient_match": 1,
+    "untrusted_instruction": 0,
+    "intent_ambiguous": 0,
+    "disposition": "allow",
+    "dispute_severity": 0
+  }
+}
