@@ -1,15 +1,23 @@
 # Module seams
 
-Cada seam tiene un dueño. Dos workers no escriben el mismo path.
+DEC-0007 reconcilia propiedad con los paquetes presentes, sin certificar entrega.
+Un worker toca un seam; ninguno edita código de otro.
 
 | id | path | owns | must not own | status |
 |---|---|---|---|---|
-| `S-policy` | `packages/policy/` | pago canónico, reglas deterministas, razones de deny | red, firmas, SDK Stellar | accepted |
-| `S-stellar` | `packages/stellar-classic/` | envelope Classic, `MEMO_HASH`, SetOptions de la cuenta presupuesto (sin submit) | política de negocio, QVAC, Horizon | accepted |
-| `S-local` | `packages/localnet/` | quickstart up/down | protocolo del pago | draft — hito posterior |
-| `S-judge` | `packages/judge/` | transporte QVAC local, un modelo Qwen3-4B, JSON schema | ampliar caps, firmar | accepted — DEC-0006 |
-| `S-gateway` | `packages/gateway/` | policy primero, judge obligatorio, decisión final, receipt y envelope | aceptar verdicts del caller, firmar, submit | accepted — DEC-0006 |
-| `S-rag` | `packages/rag-graph/` | corpus sintético y grafo | camino feliz del pago | draft — después del receipt |
-| `S-raven-dev` | _(sin path aún)_ | conexión MCP Raven opcional en IDE del humano | runtime del pago, grader, Horizon local | draft — referencia DEC-0005 |
+| S-policy | packages/policy/ | reglas deterministas, pago canónico | red, firmas | accepted |
+| S-stellar | packages/stellar-classic/ | envelopes, MEMO_HASH, SetOptions, firma | policy, QVAC, submit | accepted |
+| S-receipt | packages/receipt/ | formato canónico y hash | autorizar, firmar | accepted |
+| S-local | packages/localnet/ | plan Quickstart, URL local | protocolo del pago | accepted |
+| S-judge | packages/judge/ | QVAC local, Qwen3-4B, JSON schema | ampliar caps, firmar | accepted |
+| S-gateway | packages/gateway/ | policy, identidad del grafo, judge, receipt, envelope | firmar, submit | accepted |
+| S-rag | packages/rag-graph/ | corpus sintético, retrieval, grafo | autorizar solo | accepted |
+| S-grader | packages/grader-negative/ | casos públicos de policy | afirmar inferencia o firmas | accepted |
+| S-live | packages/live/ | integración real, helpers de transporte | redefinir policy, red pública | accepted |
+| S-build | packages/*/tsconfig.json | configuración TypeScript exclusivamente | código de dominio | accepted |
+| S-orch | orchestration/ y docs de gobierno | tareas, evidencia, handoffs | código de dominio | accepted |
 
-Decisiones: `DEC-0003`, `DEC-0004`, `DEC-0005`, `DEC-0006`.
+S-build posee exclusivamente los tsconfig durante esta reparación.
+Raven continúa como referencia sin runtime de pago (DEC-0005).
+El sitio de worktrees hermanos está fuera del alcance seleccionado.
+

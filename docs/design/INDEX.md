@@ -10,5 +10,6 @@ Cada decisión tiene un id estable `DEC-XXXX`. El planner la escribe. El worker 
 | DEC-0004 | MVP Classic, una cuenta presupuesto, RAG después | accepted | product |
 | DEC-0005 | Raven MCP referencia; sin runtime en receipt | accepted | dev-tooling (future) |
 | DEC-0006 | Judge local obligatorio antes del envelope | accepted | gateway, judge, receipt, live |
+| DEC-0007 | Reanudar fronteras y verificación | accepted | gateway, live, grader, build |
 
 Plantilla: copiar `_template.md`. Requisitos de producto, cuando lleguen: `REQ-0001-product.md`.

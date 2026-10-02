@@ -10,5 +10,6 @@ Fuente compacta para inyectar en workers. Detalle en `DEC-*.md`.
 | DEC-0004 | MVP Classic quickstart; Qwen solo; RAG después del receipt | accepted |
 | DEC-0005 | Raven MCP solo referencia; sin llamadas públicas en camino feliz | accepted |
 | DEC-0006 | Policy allow + Qwen allow; runtime ausente bloquea el envelope | accepted |
+| DEC-0007 | Identidad del grafo, estados coherentes y verificación al reanudar | accepted |
 
 Si dos planners contradicen una fila, no se mergea código. Se abre un reconciler de docs y se incrementa el id (`DEC-0003a` no: se supersede con `DEC-0004`).
