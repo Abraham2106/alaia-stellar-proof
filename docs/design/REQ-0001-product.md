@@ -1,8 +1,8 @@
 # REQ-0001 — Producto (preflight)
 
-Estado: respuestas del 2026-10-01. Gate de reparación abierto por DEC-0007 a
-DEC-0012 y FEATURE-PREPARATION ready. Esto permite implementar las hojas
-especificadas; no certifica aceptación del MVP ni integración real.
+Estado: preflight histórico del 2026-10-01. La visión vigente es REQ-0002 y
+DEC-0014. El código que ya se mergeó sigue este preflight hasta que existan
+corpus y artefacto Laya. No certifica aceptación del MVP ni de Verify 1.
 
 ## Cerrado
 

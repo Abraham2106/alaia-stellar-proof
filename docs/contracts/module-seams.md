@@ -9,7 +9,8 @@ Un worker toca un seam; ninguno edita código de otro.
 | S-stellar | packages/stellar-classic/ | envelopes, MEMO_HASH, SetOptions, firma aprobada, backup cifrado DEC-0009 | policy, QVAC, submit | accepted |
 | S-receipt | packages/receipt/ | formato canónico, hash, bundle DEC-0010 | autorizar, firmar | accepted |
 | S-local | packages/localnet/ | plan Quickstart, URL local | protocolo del pago | accepted |
-| S-judge | packages/judge/ | QVAC local, Qwen3-4B, JSON schema | ampliar caps, firmar | accepted |
+| S-judge | packages/judge/ | QVAC local, Qwen3-4B, confirmación de porcentajes DEC-0014 | ampliar caps, firmar, entrenar Laya | accepted |
+| S-laya | packages/laya/ y corpus/payments/ | conformidad DEC-0015, oro confirm, banda | pesos, red, policy, receipt | accepted |
 | S-gateway | packages/gateway/ | policy, identidad del grafo, judge, receipt, envelope | firmar, submit | accepted |
 | S-rag | packages/rag-graph/ | corpus sintético, retrieval, grafo | autorizar solo | accepted |
 | S-grader | packages/grader-negative/ | casos públicos de policy y runner reservado DEC-0011 | afirmar inferencia o firmas | accepted |
@@ -17,6 +18,8 @@ Un worker toca un seam; ninguno edita código de otro.
 | S-build | packages/*/tsconfig.json | configuración TypeScript exclusivamente | código de dominio | accepted |
 | S-orch | orchestration/ y docs de gobierno | tareas, evidencia, handoffs | código de dominio | accepted |
 
+S-laya posee `packages/laya/` y `corpus/payments/` (DEC-0015). El corpus de
+entrenamiento no lo posee S-rag. El paquete puede no existir hasta T-022.
 S-build posee exclusivamente los tsconfig durante esta reparación.
 Raven continúa como referencia sin runtime de pago (DEC-0005).
 El sitio de worktrees hermanos está fuera del alcance seleccionado.

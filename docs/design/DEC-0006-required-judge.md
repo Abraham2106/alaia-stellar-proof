@@ -1,6 +1,6 @@
 # DEC-0006 — Judge obligatorio antes del envelope
 
-- Status: `accepted`
+- Status: `accepted` para el camino de código actual. «Un solo judge» y «no se añade un segundo judge» quedan sustituidos por DEC-0014.
 - Date: 2026-10-01
 - Basis: corrección del bypass observado en Quickstart, dentro del alcance de DEC-0004.
 

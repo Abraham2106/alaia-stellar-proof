@@ -1,6 +1,6 @@
 # DEC-0004 — Alcance del primer build
 
-- Status: `accepted`
+- Status: `accepted` para los ítems 1, 2, 3 y 5. Los ítems 4 y 6 quedan sustituidos por DEC-0014.
 - Decider: planner, desde el preflight del 2026-10-01
 - Date: 2026-10-01
 

@@ -18,6 +18,9 @@ Cada decisión tiene un id estable `DEC-XXXX`. El planner la escribe. El worker 
 | DEC-0011 | Transporte y grader | accepted | local, grader, live |
 | DEC-0012 | [Judge trust boundaries](DEC-0012-judge-trust-boundaries.md) | accepted | judge |
 | DEC-0013 | [Budget signer identity](DEC-0013-budget-signer-identity.md) | accepted | stellar |
+| DEC-0014 | [ALAIA Verify 1](DEC-0014-verify-standard.md) | accepted | laya, judge, gateway, receipt |
+| DEC-0015 | [Grant, compuerta y conformidad](DEC-0015-grant-gate-conformance.md) | accepted | policy, receipt, laya |
 
-Plantilla: `_template.md`. Requisitos respondidos: `REQ-0001-product.md`.
-Aceptación de integración pendiente; pausa de Qwen por instrucción del usuario.
+Plantilla: `_template.md`. Requisitos vigentes: `REQ-0002-verify.md`.
+Estándar: `ALAIA-VERIFY-1.md`. REQ-0001 queda como preflight.
+El código aún no implementa Verify 1. Pausa de carga de modelos por instrucción del usuario.
