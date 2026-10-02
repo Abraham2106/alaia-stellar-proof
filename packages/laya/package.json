@@ -1,5 +1,5 @@
 {
-  "name": "@alaia/policy",
+  "name": "@alaia/laya",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -11,7 +11,6 @@
     "build": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.8"
   }
