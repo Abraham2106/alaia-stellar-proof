@@ -35,6 +35,8 @@ export interface ConsiderResult {
   receipt: Receipt;
   memoHash: string;
   envelope: ConsiderEnvelope | null;
+  /** DEC-0010: exact JSON preimage of receipt.judge.requestHash when the judge ran. */
+  judgeRequestJson?: string;
 }
 
 function receiptAsset(asset: Asset): ReceiptAsset {
@@ -68,6 +70,7 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
   let decision: ReceiptDecision = policy.decision;
   const reasons = [...policy.reasons];
   let judge: Receipt["judge"];
+  let judgeRequestJson: string | undefined;
 
   if (policy.decision === "allow") {
     const prompt = JSON.stringify({
@@ -83,6 +86,7 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
       userIntent: input.userIntent ?? null, untrustedEvidence: input.evidence ?? null,
     });
     const request = qvacJudgeRequest(prompt);
+    judgeRequestJson = JSON.stringify(request);
     let verdict: JudgeVerdict;
     try {
       // Never consume caller-provided verdicts. Validate at the authorization boundary.
@@ -93,7 +97,7 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
     decision = applyJudge(policy.decision, verdict);
     judge = {
       model: request.model,
-      requestHash: createHash("sha256").update(JSON.stringify(request)).digest("hex"),
+      requestHash: createHash("sha256").update(judgeRequestJson).digest("hex"),
       label: verdict.label, codes: [...verdict.codes],
     };
     if (decision !== "allow") reasons.push(decision === "deny" ? "judge_deny" : "judge_escalate", ...verdict.codes);
@@ -111,5 +115,8 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
     destination: payment.destination, amountStroops: payment.amount,
     feeStroops: Number(payment.feeStroops), memoHash32: memoHash,
   }) : null;
-  return { decision, policyDecision: policy.decision, reasons, receipt, memoHash, envelope };
+  return {
+    decision, policyDecision: policy.decision, reasons, receipt, memoHash, envelope,
+    ...(judgeRequestJson === undefined ? {} : { judgeRequestJson }),
+  };
 }
