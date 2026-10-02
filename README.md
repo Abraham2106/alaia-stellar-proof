@@ -1,21 +1,29 @@
 # alaia-stellar-proof
 
-Policy gateway local para pagos Classic de Stellar. El modelo puede rechazar o escalar; no amplía permisos. El ancla `MEMO_HASH` demuestra integridad del receipt, no que una inferencia ocurrió.
+Pasarela local de políticas para pagos Classic de Stellar. El modelo puede
+rechazar o escalar; no amplía permisos ni firma. MEMO_HASH demuestra integridad
+del receipt, no que ocurrió una inferencia.
 
-## Fuentes
+## Flujo actual
 
-- `Idea.md` — panorama
-- `alaia-proof-context.md` — restricciones antes de construir
-- `docs/design/` — decisiones `DEC-*`
+TypeScript (DEC-0003), Stellar Quickstart standalone y Qwen3-4B vía QVAC.
+consider() evalúa policy antes del judge obligatorio. Solo ambos allow producen
+un envelope; el caller comprueba decision y envelope antes de firmar.
+considerWithGraph() exige que la pareja del grafo coincida con el pago real:
+una discrepancia se rechaza y una arista desconocida se escala (DEC-0007).
 
-## Alcance de esta ola
+La cuenta de presupuesto utiliza dos firmas, masterWeight=0. La clave denominada
+recovery tiene peso cero y no puede recuperar ni gastar por sí sola; el
+procedimiento de recuperación real sigue pendiente. Ambas claves de gasto viven
+en el mismo host: este prototipo no protege contra su administrador.
 
-Quickstart standalone, sin red pública. Cuenta de presupuesto 2-de-2 (`masterWeight = 0`) con recuperación. Reglas deterministas primero. Un judge local (Qwen3-4B vía núcleo QVAC en este repo; JSON schema, código decide, el modelo no firma). RAG y grafo sobre un corpus sintético entran después de que el pago y el receipt pasen.
+## Ejecutar y verificar
 
-Lenguaje: TypeScript (`DEC-0003`).
+- [Quickstart con judge obligatorio](docs/judge-quickstart.md)
+- [Runner y alcance de la evidencia](docs/graders/runner.md)
+- [Decisiones](docs/design/DECISIONS.md)
+- Idea.md y alaia-proof-context.md: fuentes y límites de producto.
 
-## Pago con judge obligatorio
-
-`consider()` ahora es asíncrono y ejecuta Qwen internamente después de policy. Sin runtime, con timeout o sin ALLOW válido, devuelve `envelope: null`; no se debe firmar ni enviar. No acepta veredictos del caller.
-
-Setup del servidor QVAC local, migración de API y pruebas: [judge Quickstart](docs/judge-quickstart.md). La integración real requiere QVAC/Qwen y Horizon; los tests unitarios con sustitutos explícitos no prueban inferencia.
+La demo completa requiere Docker, QVAC y un GGUF local verificado. Las pruebas
+con dobles explícitos no prueban inferencia. El corpus oculto, la recuperación
+real y los negativos semánticos permanecen pendientes de aceptación.

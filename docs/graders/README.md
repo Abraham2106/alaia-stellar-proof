@@ -1,22 +1,17 @@
 # Graders
 
-Equivalente operativo de sqllogictest: un corpus con respuestas conocidas que **no** se entrega al worker.
+La verificación pública actual se ejecuta según [runner.md](runner.md).
+Los tests unitarios de gateway sustituyen explícitamente QVAC; el fixture HTTP
+comprueba transporte. Ninguno prueba inferencia ni robustez del modelo.
 
-## Layout (cuando exista)
+packages/grader-negative verifica únicamente reglas deterministas: operación
+administrativa, destino no permitido, comisión excesiva y un control permitido.
+No demuestra una factura mentirosa, sustitución posterior a firma ni bypass
+criptográfico. Estos faltantes permanecen en la aceptación del MVP.
 
-```text
-docs/graders/
-  README.md          ← esto; el worker SÍ puede leer la mecánica, no los answers
-  fixtures/          ← inputs públicos (enunciados, XDR de request, scripts)
-  goldens/           ← answers; .cursorignore + git-crypt o repo privado de grader
-  runner.md          ← cómo se invoca en local
-```
+## Grader oculto pendiente
 
-Hoy: **vacío a propósito**. El planner, con los requisitos, define:
-
-1. Qué se compara (hash de ledger, result XDR, evento de contrato, saldo).
-2. Cómo se levanta el Stellar local (un comando, reproducible).
-3. Qué fracción del corpus es el score.
-4. Qué paths están en `.cursorignore` para que Composer no los indexe.
-
-Hasta entonces ningún worker de implementación es `ready`.
+No hay corpus oculto aprobado. Los tests públicos no son ese corpus.
+Los futuros inputs podrán vivir en fixtures/; answers en goldens/, excluidos por
+.cursorignore y nunca incluidos en prompts del worker. No declarar el MVP
+completo antes de revisar el corpus y correrlo contra servicios reales locales.

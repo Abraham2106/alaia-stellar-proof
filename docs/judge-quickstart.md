@@ -9,7 +9,7 @@ Esta ola usa **un Qwen3-4B y dos claves de firma** (DEC-0004). Los modelos no re
 Desde un clone limpio, instala las dependencias de los paquetes utilizados. Node.js 22+:
 
 ```bash
-for package in policy receipt judge stellar-classic gateway localnet live; do
+for package in policy receipt judge stellar-classic rag-graph gateway localnet grader-negative live; do
   (cd "packages/$package" && npm ci)
 done
 ```
@@ -57,7 +57,7 @@ La prueba judged envía únicamente tras ALLOW real, firma con ambas claves y ve
 ## Verificaciones sin modelo
 
 ```bash
-for package in policy receipt judge stellar-classic gateway localnet; do
+for package in policy receipt judge stellar-classic rag-graph gateway localnet grader-negative; do
   (cd "packages/$package" && npm test)
 done
 ```
@@ -76,3 +76,4 @@ done
 - `ALAIA_QVAC_URL`: solo HTTP loopback con base `/v1`; no permite hosts LAN ni cloud, ni sigue redirects.
 
 El receipt incluye request hash y verdict. No incluye el prompt completo ni el GGUF: guarda esos artefactos localmente si necesitas reconstruir la evaluación. MEMO_HASH acredita integridad del receipt y sigue sin ser proof of inference.
+
