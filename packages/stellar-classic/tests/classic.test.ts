@@ -138,6 +138,25 @@ describe("budgetAccountSetOptions", () => {
     expect(spec.medThreshold).toBe(2);
     expect(spec.lowThreshold).toBe(2);
     expect(spec.highThreshold).toBe(2);
+    expect(spec.signers.map((s) => s.key)).toEqual(["signerA", "signerB"]);
+  });
+
+  it("builds two SetOptions ops without deprecated recoverySigner", () => {
+    const source = Keypair.random();
+    const signerA = Keypair.random();
+    const signerB = Keypair.random();
+    const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
+    const { xdr: envelopeXdr } = buildBudgetAccountEnvelope({
+      sourcePublic: source.publicKey(),
+      sequence: "1",
+      signerA: signerA.publicKey(),
+      signerB: signerB.publicKey(),
+      feeStroops: 300,
+    });
+    const envelope = xdr.TransactionEnvelope.fromXDR(envelopeXdr, "base64");
+    const ops =
+      envelope.v1().tx().operations() ?? envelope.v0().tx().operations();
+    expect(ops.length).toBe(2);
   });
 
   it("builds a single SetOptions transaction with three signer ops", () => {

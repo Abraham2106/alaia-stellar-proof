@@ -11,8 +11,9 @@ export type BudgetAccountSpec = {
   lowThreshold: 2;
   medThreshold: 2;
   highThreshold: 2;
+  /** Active multisig authorities (weight ≥ 1). DEC-0009: recoverySigner is not a vote. */
   signers: ReadonlyArray<{
-    key: "signerA" | "signerB" | "recoverySigner";
+    key: "signerA" | "signerB";
     weight: number;
   }>;
 };
@@ -22,7 +23,11 @@ export type BuildBudgetAccountEnvelopeParams = {
   sequence: string | number;
   signerA: string;
   signerB: string;
-  recoverySigner: string;
+  /**
+   * @deprecated Optional legacy signer removal (weight 0). Not an active authority.
+   * DEC-0009: omit when configuring new budget accounts.
+   */
+  recoverySigner?: string;
   feeStroops: number;
 };
 
@@ -40,7 +45,6 @@ export function budgetAccountSetOptions(): {
     signers: [
       { key: "signerA", weight: 1 },
       { key: "signerB", weight: 1 },
-      { key: "recoverySigner", weight: 0 },
     ],
   };
 
@@ -67,14 +71,16 @@ export function budgetAccountSetOptions(): {
         Operation.setOptions({
           signer: { ed25519PublicKey: params.signerB, weight: 1 },
         }),
-      )
-      .addOperation(
+      );
+    if (params.recoverySigner !== undefined) {
+      // DEC-0009: optional deprecated legacy signer strip (weight 0, not a third vote).
+      builder.addOperation(
         Operation.setOptions({
-          // DEC-0004 recovery is a separate tested procedure, not a third vote.
           signer: { ed25519PublicKey: params.recoverySigner, weight: 0 },
         }),
-      )
-      .setTimeout(TimeoutInfinite);
+      );
+    }
+    builder.setTimeout(TimeoutInfinite);
 
     const transaction = builder.build();
     return {
