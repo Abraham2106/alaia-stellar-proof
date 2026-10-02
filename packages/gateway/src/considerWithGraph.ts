@@ -1,4 +1,5 @@
 // DEC-0004: graph gate before the judge; a known edge cannot override a policy deny
+// DEC-0007: candidate endpoints must match input; unknown graph => escalate
 import { assess } from "@alaia/rag-graph";
 import type { PaymentCandidate } from "@alaia/rag-graph";
 import { evaluate } from "@alaia/policy";
@@ -13,7 +14,7 @@ function receiptAsset(asset: ConsiderInput["asset"]): ReceiptAsset {
 
 function policyGateResult(
   input: ConsiderInput,
-  extraReasons: string[] = [],
+  options: { extraReasons?: string[]; decision?: ReceiptDecision } = {},
 ): ConsiderResult {
   const payment: CanonicalPayment = {
     destination: input.destination,
@@ -28,8 +29,8 @@ function policyGateResult(
     policy.decision = "deny";
     policy.reasons.push("unsupported_asset");
   }
-  const decision: ReceiptDecision = policy.decision;
-  const reasons = [...policy.reasons, ...extraReasons];
+  const decision: ReceiptDecision = options.decision ?? policy.decision;
+  const reasons = [...policy.reasons, ...(options.extraReasons ?? [])];
   const receipt: Receipt = {
     policyVersion: input.policyVersion,
     destination: payment.destination,
@@ -68,12 +69,29 @@ export async function considerWithGraph(
     policy.reasons.push("unsupported_asset");
   }
   const policyAllows = policy.decision === "allow";
+
+  if (!policyAllows) {
+    return policyGateResult(input);
+  }
+
+  if (
+    candidate.from !== input.sourcePublic ||
+    candidate.to !== input.destination
+  ) {
+    return policyGateResult(input, {
+      decision: "deny",
+      extraReasons: ["graph_candidate_mismatch"],
+    });
+  }
+
   const assessment = assess(candidate, policyAllows);
 
-  if (!policyAllows || !assessment.accept) {
+  if (!assessment.accept) {
     const extraReasons =
-      policyAllows && assessment.graph === "unknown" ? ["graph_unknown"] : [];
-    return policyGateResult(input, extraReasons);
+      assessment.graph === "unknown" ? ["graph_unknown"] : [];
+    const decision: ReceiptDecision =
+      assessment.graph === "unknown" ? "escalate" : policy.decision;
+    return policyGateResult(input, { decision, extraReasons });
   }
 
   return await consider(input);
