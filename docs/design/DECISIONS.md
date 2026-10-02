@@ -13,3 +13,7 @@ Fuente compacta para inyectar en workers. Detalle en `DEC-*.md`.
 | DEC-0007 | Identidad del grafo, estados coherentes y verificación al reanudar | accepted |
 
 Si dos planners contradicen una fila, no se mergea código. Se abre un reconciler de docs y se incrementa el id (`DEC-0003a` no: se supersede con `DEC-0004`).
+| DEC-0008 | Renderer con arrays y spawn parcial reanudable sin borrar cambios | accepted |
+| DEC-0009 | Firma aprobada exacta y recuperación mediante backups separados sin nuevo signer | accepted |
+| DEC-0010 | Bundle de evidencia y request preimage, con validación de integridad | accepted |
+| DEC-0011 | Transporte loopback y grader reservado generado después de workers | accepted |

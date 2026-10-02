@@ -13,3 +13,7 @@ Cada decisión tiene un id estable `DEC-XXXX`. El planner la escribe. El worker 
 | DEC-0007 | Reanudar fronteras y verificación | accepted | gateway, live, grader, build |
 
 Plantilla: copiar `_template.md`. Requisitos de producto, cuando lleguen: `REQ-0001-product.md`.
+| DEC-0008 | Orquestación reanudable | accepted | orchestration |
+| DEC-0009 | Firma y recuperación | accepted | stellar, live |
+| DEC-0010 | Reconstrucción | accepted | gateway, receipt, live |
+| DEC-0011 | Transporte y grader | accepted | local, grader, live |
