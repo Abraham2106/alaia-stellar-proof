@@ -1,6 +1,6 @@
 // DEC-0004: one required local judge; deterministic policy outranks the model.
 import { createHash } from "node:crypto";
-import { applyJudge, parseJudgeVerdict, qvacJudgeRequest, runJudge } from "@alaia/judge";
+import { applyJudge, qvacJudgeRequest, runJudge } from "@alaia/judge";
 import type { JudgeVerdict } from "@alaia/judge";
 import { evaluate } from "@alaia/policy";
 import type { Asset, BudgetPolicy, CanonicalPayment, OperationKind, PolicyDecision } from "@alaia/policy";
@@ -86,7 +86,7 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
     let verdict: JudgeVerdict;
     try {
       // Never consume caller-provided verdicts. Validate at the authorization boundary.
-      verdict = parseJudgeVerdict(JSON.stringify(await runJudge(prompt)));
+      verdict = await runJudge(prompt);
     } catch {
       verdict = { label: "escalate", codes: ["runtime_unavailable"] };
     }

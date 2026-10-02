@@ -37,6 +37,14 @@ describe("applyJudge", () => {
     const result = applyJudge("allow", { label: "allow", codes: ["ok"] });
     expect(result).toBe("allow");
   });
+
+  it("denies when policy allows but judge denies", () => {
+    const result = applyJudge("allow", {
+      label: "deny",
+      codes: ["recipient_mismatch"],
+    });
+    expect(result).toBe("deny");
+  });
 });
 
 describe("runJudge", () => {

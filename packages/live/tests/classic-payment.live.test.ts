@@ -298,7 +298,13 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     const allow = await consider(
       policyInput(budget.publicKey(), acct.sequence, allowedDest, { userIntent: `Pay 0.5 XLM to ${allowedDest}` }),
     );
-    expect(allow.decision).toBe("allow");
+    if (allow.decision !== "allow") {
+      const judge = allow.receipt.judge;
+      throw new Error(
+        `expected judge allow, got decision=${allow.decision} reasons=${JSON.stringify(allow.reasons)} ` +
+          `judge=${JSON.stringify(judge ? { label: judge.label, codes: judge.codes } : null)}`,
+      );
+    }
     expect(allow.envelope).not.toBeNull();
     expect(allow.receipt.judge).toMatchObject({ model: "Qwen3-4B", label: "allow", codes: ["ok"] });
 

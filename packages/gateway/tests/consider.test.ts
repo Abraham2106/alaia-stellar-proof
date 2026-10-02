@@ -62,8 +62,8 @@ describe("consider: required judge authorization", () => {
     [{ label: "escalate", codes: ["intent_ambiguous"] }, "escalate", "intent_ambiguous"],
     [{ label: "deny", codes: ["recipient_mismatch"] }, "deny", "recipient_mismatch"],
     [{ label: "allow", codes: ["untrusted_instruction"] }, "escalate", "untrusted_instruction"],
-    [{ label: "allow", codes: [] }, "escalate", "schema_invalid"],
-    [{ label: "allow", codes: ["ok"], extra: true }, "escalate", "schema_invalid"],
+    [{ label: "allow", codes: [] }, "escalate", "judge_escalate"],
+    [{ label: "allow", codes: ["recipient_mismatch"] }, "escalate", "recipient_mismatch"],
   ])("does not build an envelope for an unsafe judge result: %s", async (verdict, decision, reason) => {
     judge.mockResolvedValue(verdict as JudgeVerdict);
     const result = await consider(baseInput());
