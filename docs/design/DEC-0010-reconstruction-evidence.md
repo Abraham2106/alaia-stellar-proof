@@ -26,3 +26,16 @@ no demuestra inferencia, procedencia autenticada de weights ni replay universal.
 Tests: JSON roundtrip, cambios de receipt/request, request ausente, hashes y
 metadatos inválidos; live persiste, vuelve a leer y compara memo de Horizon, XDR,
 payment/sequence/source y requestHash. No exportar datos privados al sitio.
+
+Contrato público para S-receipt: `createEvidenceBundle(input): EvidenceBundle`,
+`verifyEvidenceBundle(bundle): void` (throw en inválido), `evidenceBundleHash(bundle)`.
+Formato `{version: 1, receipt, memoHash, networkPassphrase, sourcePublic, sequence,
+judgeRequestJson?, envelope?: {xdr, hash}, transactionHash?, modelArtifact?:
+{sha256, source, runtimeVersion}, manifestHash}`. Hash del manifiesto: SHA-256 de
+JSON con claves de objetos ordenadas recursivamente, excluyendo manifestHash;
+arrays preservan orden. Sequence decimal positiva sin ceros a la izquierda;
+sourcePublic formato G Stellar de 56 caracteres; networkPassphrase no vacío;
+hashes lowercase hex64. No afirmar checksum de dirección sin SDK. Bounds públicos:
+JSON bundle <=1 MiB, request <=256 KiB, XDR <=256 KiB, metadatos strings <=2048.
+Version/tipos/keys desconocidos se rechazan. Verificar hashes internos además del
+manifiesto; XDR/hash/signed-body comparados con SDK únicamente en S-live.

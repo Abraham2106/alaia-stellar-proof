@@ -17,3 +17,4 @@ Si dos planners contradicen una fila, no se mergea código. Se abre un reconcile
 | DEC-0009 | Firma aprobada exacta y recuperación mediante backups separados sin nuevo signer | accepted |
 | DEC-0010 | Bundle de evidencia y request preimage, con validación de integridad | accepted |
 | DEC-0011 | Transporte loopback y grader reservado generado después de workers | accepted |
+| DEC-0012 | Intención confiable y evidencia en Qwen real | accepted |

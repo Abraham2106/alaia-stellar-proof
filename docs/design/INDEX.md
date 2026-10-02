@@ -17,3 +17,4 @@ Plantilla: copiar `_template.md`. Requisitos de producto, cuando lleguen: `REQ-0
 | DEC-0009 | Firma y recuperación | accepted | stellar, live |
 | DEC-0010 | Reconstrucción | accepted | gateway, receipt, live |
 | DEC-0011 | Transporte y grader | accepted | local, grader, live |
+| DEC-0012 | [Judge trust boundaries](DEC-0012-judge-trust-boundaries.md) | accepted |
