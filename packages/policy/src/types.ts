@@ -34,6 +34,31 @@ export interface BudgetPolicy {
   maxFeeStroops: bigint;
 }
 
+/** Who may authorize a spend, and with what weight. Keys stay outside this package. */
+export type SignerWeight = {
+  id: "signerA" | "signerB";
+  weight: number;
+};
+
+/** Where a payment is allowed to apply: destination, asset, and payment-only operations. */
+export type ContextRule = {
+  allowedDestinations: readonly string[];
+  allowedAssets: readonly Asset[];
+};
+
+/** Threshold plus spending caps. Separate from who signs and from where the payment applies. */
+export type SpendingPolicy = {
+  threshold: number;
+  maxAmountStroops: bigint;
+  maxFeeStroops: bigint;
+};
+
+export type AuthorizationLayers = {
+  signers: readonly SignerWeight[];
+  context: ContextRule;
+  spending: SpendingPolicy;
+};
+
 export type PolicyDecision = "allow" | "deny";
 
 export interface EvaluateResult {
