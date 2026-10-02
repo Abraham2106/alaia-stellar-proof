@@ -40,7 +40,7 @@ export function parseJudgeVerdict(text: string): JudgeVerdict {
     return schemaInvalidVerdict();
   }
 
-  if (!Array.isArray(codes)) {
+  if (!Array.isArray(codes) || codes.length === 0 || codes.length > 6 || new Set(codes).size !== codes.length) {
     return schemaInvalidVerdict();
   }
 

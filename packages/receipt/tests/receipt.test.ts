@@ -72,3 +72,16 @@ describe("canonicalReceiptBytes", () => {
     );
   });
 });
+
+describe("judge evidence", () => {
+  it("anchors the judge request and verdict", () => {
+    const receipt = sampleReceipt({ judge: { model: "Qwen3-4B", requestHash: "a".repeat(64), label: "allow", codes: ["ok"] } });
+    expect(receiptMemoHash(receipt)).not.toBe(receiptMemoHash(sampleReceipt()));
+    expect(receiptMemoHash(receipt)).not.toBe(receiptMemoHash({ ...receipt, judge: { ...receipt.judge!, requestHash: "b".repeat(64) } }));
+    expect(receiptMemoHash(receipt)).not.toBe(receiptMemoHash({ ...receipt, judge: { ...receipt.judge!, label: "escalate" } }));
+  });
+  it("preserves escalation explicitly", () => {
+    const text = new TextDecoder().decode(canonicalReceiptBytes(sampleReceipt({ decision: "escalate" })));
+    expect(JSON.parse(text).decision).toBe("escalate");
+  });
+});

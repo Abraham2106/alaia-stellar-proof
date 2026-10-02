@@ -44,6 +44,7 @@ async function resolveLiveHorizon(): Promise<string> {
       continue;
     }
     seen.add(base);
+    assertLocalHorizon(base);
     if (await isHorizonApi(base)) {
       return base;
     }
@@ -249,12 +250,11 @@ function policyInput(
 const horizonUp = await horizonResponds(LIVE_HORIZON);
 
 describe("local Classic payment slice (Quickstart standalone)", () => {
-  it("funds budget account, submits allowed payment, and denies without submit", async (ctx) => {
+  it("configures 2-of-2 and rejects a weight-0 recovery signature independently of Qwen", async (ctx) => {
     if (!horizonUp) {
-      ctx.skip(
-        true,
-        `Local Horizon not reachable at ${LIVE_HORIZON} — start Quickstart (--local) and retry.`,
-      );
+      if (process.env.ALAIA_LIVE === "1") throw new Error("ALAIA_LIVE=1 requires local Horizon");
+      // Ordinary unit runs may omit Quickstart; explicit ALAIA_LIVE runs may not.
+      ctx.skip();
       return;
     }
 
@@ -264,8 +264,6 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     const signerA = Keypair.random();
     const signerB = Keypair.random();
     const recovery = Keypair.random();
-    const allowedDest = Keypair.random().publicKey();
-    const deniedDest = Keypair.random().publicKey();
 
     await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
     let acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
@@ -306,17 +304,43 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
       | { transaction?: string }
       | undefined;
     expect(recoveryCodes?.transaction).toBe("tx_bad_auth");
+  });
 
+  it("submits only a payment approved by the real QVAC judge and anchors its receipt", async (ctx) => {
+    if (!horizonUp || process.env.ALAIA_QVAC !== "1") {
+      if (process.env.ALAIA_LIVE === "1") throw new Error("ALAIA_LIVE=1 requires local Horizon and ALAIA_QVAC=1");
+      // Requires local Horizon and real QVAC/Qwen; no judge mock is used.
+      ctx.skip();
+      return;
+    }
+    assertLocalHorizon(LIVE_HORIZON);
+    const budget = Keypair.random();
+    const signerA = Keypair.random();
+    const signerB = Keypair.random();
+    const recovery = Keypair.random();
+    const allowedDest = Keypair.random().publicKey();
+    const deniedDest = Keypair.random().publicKey();
     await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
+    let acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+    const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
+    const setup = buildBudgetAccountEnvelope({ sourcePublic: budget.publicKey(), sequence: acct.sequence,
+      signerA: signerA.publicKey(), signerB: signerB.publicKey(), recoverySigner: recovery.publicKey(), feeStroops: 300 });
+    await submitTransaction(LIVE_HORIZON, signEnvelope(setup.xdr, budget.secret()));
     acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
-
     await fundViaFriendbot(LIVE_HORIZON, allowedDest);
 
-    const allow = consider(
-      policyInput(budget.publicKey(), acct.sequence, allowedDest),
+    const allow = await consider(
+      policyInput(budget.publicKey(), acct.sequence, allowedDest, { userIntent: `Pay 0.5 XLM to ${allowedDest}` }),
     );
-    expect(allow.decision).toBe("allow");
+    if (allow.decision !== "allow") {
+      const judge = allow.receipt.judge;
+      throw new Error(
+        `expected judge allow, got decision=${allow.decision} reasons=${JSON.stringify(allow.reasons)} ` +
+          `judge=${JSON.stringify(judge ? { label: judge.label, codes: judge.codes } : null)}`,
+      );
+    }
     expect(allow.envelope).not.toBeNull();
+    expect(allow.receipt.judge).toMatchObject({ model: "Qwen3-4B", label: "allow", codes: ["ok"] });
 
     let signed = signEnvelope(allow.envelope!.xdr, signerA.secret());
     signed = signEnvelope(signed, signerB.secret());
@@ -326,7 +350,7 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(onChain.memo_type).toBe("hash");
     expect(normalizeMemoHex(onChain.memo)).toBe(allow.memoHash);
 
-    const denySetOptions = consider(
+    const denySetOptions = await consider(
       policyInput(budget.publicKey(), acct.sequence, allowedDest, {
         operations: ["payment", "setOptions"],
       }),
@@ -335,7 +359,7 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(denySetOptions.envelope).toBeNull();
     expect(denySetOptions.reasons).toContain("admin_operation");
 
-    const denyOverCap = consider(
+    const denyOverCap = await consider(
       policyInput(budget.publicKey(), acct.sequence, allowedDest, {
         amount: 10_000_001n,
       }),
@@ -344,7 +368,7 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(denyOverCap.envelope).toBeNull();
     expect(denyOverCap.reasons).toContain("over_cap");
 
-    const denyDest = consider(
+    const denyDest = await consider(
       policyInput(budget.publicKey(), acct.sequence, allowedDest, {
         destination: deniedDest,
       }),
