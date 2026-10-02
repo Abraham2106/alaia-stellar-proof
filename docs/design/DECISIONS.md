@@ -17,6 +17,7 @@ Fuente compacta para inyectar en workers. Detalle en `DEC-*.md`.
 | DEC-0010 | Bundle de evidencia y request preimage, con validación de integridad | accepted |
 | DEC-0011 | Transporte loopback y grader reservado generado después de workers | accepted |
 | DEC-0012 | Intención confiable y evidencia en Qwen real | accepted |
+| DEC-0013 | Identidades distintas en setup 2-de-2 | accepted |
 
 Si dos planners contradicen una fila, no se mergea código. Se abre reconciliación
 de docs y se incrementa el id; no se agregan sufijos al id.

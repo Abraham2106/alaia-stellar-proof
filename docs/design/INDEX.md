@@ -17,6 +17,7 @@ Cada decisión tiene un id estable `DEC-XXXX`. El planner la escribe. El worker 
 | DEC-0010 | Reconstrucción | accepted | gateway, receipt, live |
 | DEC-0011 | Transporte y grader | accepted | local, grader, live |
 | DEC-0012 | [Judge trust boundaries](DEC-0012-judge-trust-boundaries.md) | accepted | judge |
+| DEC-0013 | [Budget signer identity](DEC-0013-budget-signer-identity.md) | accepted | stellar |
 
 Plantilla: `_template.md`. Requisitos respondidos: `REQ-0001-product.md`.
 Aceptación de integración pendiente; pausa de Qwen por instrucción del usuario.
