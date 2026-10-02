@@ -1,0 +1,13 @@
+{
+  "id": "agent-no-grant",
+  "split": "confirm",
+  "walletClass": "agent",
+  "tool": "payment",
+  "gold": {
+    "recipient_match": 0,
+    "untrusted_instruction": 0,
+    "intent_ambiguous": 0,
+    "disposition": "deny",
+    "dispute_severity": 2
+  }
+}
