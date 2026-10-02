@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Keypair } from "@stellar/stellar-sdk";
-import { consider, type ConsiderInput } from "@alaia/gateway";
+import { consider, considerWithGraph, type ConsiderInput } from "@alaia/gateway";
 import { assertLocalHorizon, LOCAL_HORIZON } from "@alaia/localnet";
 import {
   budgetAccountSetOptions,
@@ -155,6 +155,29 @@ async function submitTransactionRaw(
     detail: json.detail,
     resultCodes: json.extras?.result_codes,
   };
+}
+
+async function countOutgoingPayments(
+  baseUrl: string,
+  sourceId: string,
+): Promise<number> {
+  const res = await fetch(
+    `${baseUrl}/accounts/${encodeURIComponent(sourceId)}/payments?limit=200`,
+    { signal: AbortSignal.timeout(15_000) },
+  );
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`payments list failed (${res.status}): ${body.slice(0, 200)}`);
+  }
+  const json = (await res.json()) as {
+    _embedded?: {
+      records?: Array<{ from: string; transaction_successful?: boolean }>;
+    };
+  };
+  const records = json._embedded?.records ?? [];
+  return records.filter(
+    (row) => row.from === sourceId && row.transaction_successful !== false,
+  ).length;
 }
 
 async function fetchTransaction(
@@ -318,5 +341,60 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(denyDest.decision).toBe("deny");
     expect(denyDest.envelope).toBeNull();
     expect(denyDest.reasons).toContain("destination_denied");
+  });
+
+  it("graph gate: considerWithGraph withholds envelope for unknown corpus edge (no submit)", async (ctx) => {
+    if (!horizonUp) {
+      ctx.skip(
+        true,
+        `Local Horizon not reachable at ${LIVE_HORIZON} — start Quickstart (--local) and retry.`,
+      );
+      return;
+    }
+
+    assertLocalHorizon(LIVE_HORIZON);
+
+    const budget = Keypair.random();
+    const signerA = Keypair.random();
+    const signerB = Keypair.random();
+    const recovery = Keypair.random();
+    const allowedDest = Keypair.random().publicKey();
+
+    await fundViaFriendbot(LIVE_HORIZON, budget.publicKey());
+    let acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+
+    const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
+    const setup = buildBudgetAccountEnvelope({
+      sourcePublic: budget.publicKey(),
+      sequence: acct.sequence,
+      signerA: signerA.publicKey(),
+      signerB: signerB.publicKey(),
+      recoverySigner: recovery.publicKey(),
+      feeStroops: 300,
+    });
+    const setupSigned = signEnvelope(setup.xdr, budget.secret());
+    await submitTransaction(LIVE_HORIZON, setupSigned);
+
+    acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+    await fundViaFriendbot(LIVE_HORIZON, allowedDest);
+
+    const paymentsBefore = await countOutgoingPayments(
+      LIVE_HORIZON,
+      budget.publicKey(),
+    );
+
+    const graphGate = considerWithGraph(
+      policyInput(budget.publicKey(), acct.sequence, allowedDest),
+      { from: budget.publicKey(), to: allowedDest },
+    );
+    expect(graphGate.decision).toBe("allow");
+    expect(graphGate.envelope).toBeNull();
+    expect(graphGate.reasons).toContain("graph_unknown");
+
+    const paymentsAfter = await countOutgoingPayments(
+      LIVE_HORIZON,
+      budget.publicKey(),
+    );
+    expect(paymentsAfter).toBe(paymentsBefore);
   });
 });
