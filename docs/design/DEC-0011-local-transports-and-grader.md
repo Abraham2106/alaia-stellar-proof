@@ -12,6 +12,11 @@ Hosts LAN/públicos, https y esquemas ajenos quedan rechazados. Validar toda URL
 antes de fetch, redirect:error, incluyendo links descubiertos y rutas relativas.
 S-live construye URLs desde bases locales validadas, no sigue redirects.
 
+El probe exige network_passphrase standalone (campo documentado por el SDK
+Horizon existente); endpoint explícito no se sustituye silenciosamente por otro.
+La señal del caller se combina con timeout, no lo elimina. S-live puede añadir
+@types/node 22 como devDependency y script typecheck; no cambia tsconfig (S-build).
+
 ## Grader reservado
 
 S-grader recibe un modo público y un runner genérico que lee cases JSON del judge,
