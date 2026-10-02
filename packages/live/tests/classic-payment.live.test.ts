@@ -80,6 +80,9 @@ async function fundViaFriendbot(baseUrl: string, address: string): Promise<void>
   }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
+    if (res.status === 400 && body.includes("already funded")) {
+      return;
+    }
     throw new Error(
       `friendbot failed (${res.status}) for ${address}: ${body.slice(0, 200)}`,
     );
@@ -418,7 +421,7 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
       budget.publicKey(),
     );
 
-    const graphGate = considerWithGraph(
+    const graphGate = await considerWithGraph(
       policyInput(budget.publicKey(), acct.sequence, allowedDest),
       { from: budget.publicKey(), to: allowedDest },
     );
@@ -433,7 +436,7 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(paymentsAfter).toBe(paymentsBefore);
   });
 
-  it("graph gate: known corpus edge submits allowed payment on local Horizon", async (ctx) => {
+  it("graph gate: known corpus edge stays fail-closed without QVAC (no submit)", async (ctx) => {
     if (!horizonUp) {
       ctx.skip(
         true,
@@ -457,38 +460,45 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
 
     let acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
 
-    const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
-    const setup = buildBudgetAccountEnvelope({
-      sourcePublic: budget.publicKey(),
-      sequence: acct.sequence,
-      signerA: signerA.publicKey(),
-      signerB: signerB.publicKey(),
-      recoverySigner: recovery.publicKey(),
-      feeStroops: 300,
-    });
-    const setupSigned = signEnvelope(setup.xdr, budget.secret());
-    await submitTransaction(LIVE_HORIZON, setupSigned);
+    if (acct.thresholds.med_threshold !== 2) {
+      const { buildBudgetAccountEnvelope } = budgetAccountSetOptions();
+      const setup = buildBudgetAccountEnvelope({
+        sourcePublic: budget.publicKey(),
+        sequence: acct.sequence,
+        signerA: signerA.publicKey(),
+        signerB: signerB.publicKey(),
+        recoverySigner: recovery.publicKey(),
+        feeStroops: 300,
+      });
+      const setupSigned = signEnvelope(setup.xdr, budget.secret());
+      await submitTransaction(LIVE_HORIZON, setupSigned);
 
-    acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
-    expect(acct.thresholds.med_threshold).toBe(2);
+      acct = await loadAccount(LIVE_HORIZON, budget.publicKey());
+      expect(acct.thresholds.med_threshold).toBe(2);
+    }
 
-    const graphAllow = considerWithGraph(
+    const paymentsBefore = await countOutgoingPayments(
+      LIVE_HORIZON,
+      budget.publicKey(),
+    );
+
+    const graphAllow = await considerWithGraph(
       policyInput(budget.publicKey(), acct.sequence, fixtureDest),
       { from: budget.publicKey(), to: fixtureDest },
     );
-    expect(graphAllow.decision).toBe("allow");
-    expect(graphAllow.envelope).not.toBeNull();
+    expect(graphAllow.policyDecision).toBe("allow");
+    expect(graphAllow.decision).toBe("escalate");
+    expect(graphAllow.envelope).toBeNull();
+    expect(graphAllow.reasons).toContain("runtime_unavailable");
     expect(graphAllow.reasons).not.toContain("graph_unknown");
 
-    let signed = signEnvelope(graphAllow.envelope!.xdr, signerA.secret());
-    signed = signEnvelope(signed, signerB.secret());
-    const { hash: paymentHash } = await submitTransaction(LIVE_HORIZON, signed);
+    const paymentsAfter = await countOutgoingPayments(
+      LIVE_HORIZON,
+      budget.publicKey(),
+    );
+    expect(paymentsAfter).toBe(paymentsBefore);
 
-    const onChain = await fetchTransaction(LIVE_HORIZON, paymentHash);
-    expect(onChain.memo_type).toBe("hash");
-    expect(normalizeMemoHex(onChain.memo)).toBe(graphAllow.memoHash);
-
-    const denySetOptions = considerWithGraph(
+    const denySetOptions = await considerWithGraph(
       policyInput(budget.publicKey(), acct.sequence, fixtureDest, {
         operations: ["payment", "setOptions"],
       }),
