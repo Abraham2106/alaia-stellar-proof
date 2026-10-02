@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { applyJudge, qvacJudgeRequest, runJudge } from "@alaia/judge";
 import type { JudgeVerdict } from "@alaia/judge";
 import { evaluate } from "@alaia/policy";
-import type { Asset, BudgetPolicy, CanonicalPayment, OperationKind, PolicyDecision } from "@alaia/policy";
+import type { Asset, BudgetPolicy, CanonicalPayment, Grant, OperationKind, PolicyDecision } from "@alaia/policy";
 import { receiptMemoHash } from "@alaia/receipt";
 import type { Receipt, ReceiptAsset, ReceiptDecision } from "@alaia/receipt";
 import { buildPaymentEnvelope, STANDALONE_PASSPHRASE } from "@alaia/stellar-classic";
@@ -23,6 +23,8 @@ export interface ConsiderInput {
   userIntent?: string;
   /** Untrusted invoice/tool data; cannot define policy. */
   evidence?: string;
+  walletClass?: "human" | "agent";
+  grant?: Grant;
 }
 
 export interface ConsiderEnvelope { xdr: string; hash: string }
@@ -61,7 +63,18 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
     feeStroops: input.feeStroops, operations: input.operations,
     ...(input.memoHash === undefined ? {} : { memoHash: input.memoHash }),
   };
-  const policy = evaluate(payment, input.policy);
+  // DEC-0015: agent spend requires a human grant; policy closes non-payment tools
+  const scope =
+    input.walletClass === undefined && input.grant === undefined
+      ? undefined
+      : {
+          ...(input.walletClass !== undefined ? { walletClass: input.walletClass } : {}),
+          ...(input.grant !== undefined ? { grant: input.grant } : {}),
+        };
+  const policy =
+    scope === undefined
+      ? evaluate(payment, input.policy)
+      : evaluate(payment, input.policy, scope);
   // The Classic builder currently emits only XLM, even if a caller lists credit assets.
   if (payment.asset.kind !== "native") {
     policy.decision = "deny";

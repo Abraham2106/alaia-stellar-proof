@@ -17,6 +17,8 @@ stop_when:
 - Allow sin grant en wallet agent
 verification:
   planned: []
-  run: []
+  run:
+    - "packages/gateway: npm test — 4 files, 36 passed"
+    - "packages/gateway: npm run build — ok"
 goldens_exposed: false
 alarms: []

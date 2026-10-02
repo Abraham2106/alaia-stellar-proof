@@ -118,6 +118,16 @@ describe("consider: required judge authorization", () => {
     expect(result.receipt.amountStroops).toBe("5000000");
   });
 
+  it("agent scope without grant denies before judge and emits no envelope", async () => {
+    const result = await consider(baseInput({ walletClass: "agent" }));
+    expect(result.decision).toBe("deny");
+    expect(result.policyDecision).toBe("deny");
+    expect(result.reasons).toContain("grant_required");
+    expect(result.envelope).toBeNull();
+    expect(result.receipt.judge).toBeUndefined();
+    expect(judge).not.toHaveBeenCalled();
+  });
+
   it("different evidence changes the anchored request even with the same verdict", async () => {
     const input = baseInput();
     const a = await consider({ ...input, evidence: "invoice A" });
