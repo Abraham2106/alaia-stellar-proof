@@ -1,14 +1,26 @@
 # ALAIA
 
-## Un agente puede pedir un pago. Las reglas locales deciden si sale.
+## Una persona deja un grant. El agente solo gasta dentro de ese grant.
 
-ALAIA es una pasarela de políticas en tu máquina para pagos que un agente de IA quiere hacer en Stellar Classic. El modelo devuelve solo un veredicto en JSON. El código permite, escala o rechaza. Nadie delega la firma ni la escritura en el ledger al modelo.
+ALAIA verifica el mismo pago Classic para una wallet humana y para una wallet de agente. La policy corre primero. El modelo devuelve solo un veredicto en JSON. El código permite, escala o rechaza. Nadie delega la firma al modelo. Un pago de agente sin el hash del grant no tiene envelope.
 
 ## Así pasa un pago por la pasarela
 
 El agente propone un pago. Las reglas y un grafo sintético de destinos válidos se evalúan antes de cualquier envío. Si el destino no está en ese grafo, no hay transacción. Si el par origen–destino es conocido pero una regla dice no, tampoco.
 
 Un juez local — Qwen3-4B, servido por el núcleo QVAC del repositorio — emite el veredicto cuando hace falta. Si ese runtime no está en marcha, el pago no sale.
+
+## Así se autoriza
+
+La persona verifica el presupuesto. El grant fija destino, activo y monto máximo, y se identifica por su hash. El agente propone un pago que cita ese hash. Si falta, o si el destino, el activo o el monto no caben, la policy niega con `grant_required` o `grant_mismatch` y no hay envelope.
+
+## Qué tools llegan al modelo
+
+Solo un payment que la policy ya permitió abre las preguntas. Cambiar firmantes se niega con `signer_change_denied`. Abrir un trustline se niega con `trustline_closed`. Llamar un contrato se niega con `contract_rail_closed`. Esas tres no consultan al modelo. El modelo que eligió la tool no autoriza.
+
+## Conformidad
+
+Cinco casos publicados comparan respuestas contra un oro fijo, con banda de 0,15: pago alineado, agente sin grant, destinatario sustituido, instrucción dentro de la factura, y cambio de firmantes. Si el caso aparece como su propio vecino, no conforma. El registro `alaia-verify-1` cita el hash del grant, el del artefacto, el del corpus y los ids de vecinos. Ese registro reconstruye qué se comparó. No afirma que un modelo de decisión haya corrido: los pesos no están cargados.
 
 Cuando todo encaja, el código firma y envía. El camino feliz no depende de la red pública: corre contra un Stellar Quickstart local.
 

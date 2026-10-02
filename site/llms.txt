@@ -1,0 +1,28 @@
+# ALAIA
+
+> Pasarela de políticas local para pagos que un agente de IA quiere hacer en Stellar Classic. Reglas deterministas, un grafo sintético de destinos y un juez local (Qwen3-4B vía QVAC) deciden; el modelo no firma ni amplía permisos. Cuenta de presupuesto 2-de-2 con master en peso 0. El hash del recibo va en MEMO_HASH y ancla su integridad; no demuestra que el juez se ejecutó. Demo local sobre Stellar Quickstart; no usa mainnet.
+
+Dominio canónico: [TBD: dominio]. Las rutas de abajo son relativas al sitio.
+
+## Sitio
+
+- [Inicio](/): qué es, cómo pasa un pago, qué se rechaza, cuenta 2-de-2, recibo, todo local.
+- [Qué demuestra y qué no](/limites/): límites de la demo y casos en verificación.
+
+## Repositorio
+
+URL del repositorio: [TBD: URL del repositorio]
+
+- README.md: resumen y alcance de esta ola.
+- docs/judge-quickstart.md: preparación y ejecución local (Quickstart, QVAC, tests live).
+- docs/design/DECISIONS.md: decisiones DEC-* aceptadas.
+
+## Códigos de rechazo publicados
+
+- over_cap: monto por encima del tope (packages/policy/src/evaluate.ts).
+- destination_denied: destino fuera de la lista permitida (packages/policy/src/evaluate.ts).
+- graph_unknown: par origen–destino fuera del grafo sintético (packages/gateway/src/considerWithGraph.ts).
+- asset_denied: activo no permitido (packages/policy/src/evaluate.ts).
+- unsupported_asset: activo distinto de XLM; el constructor Classic solo emite XLM (packages/gateway/src/consider.ts).
+- fee_over_cap: comisión por encima del tope (packages/policy/src/evaluate.ts).
+- admin_operation: operación que no es un pago (packages/policy/src/evaluate.ts).

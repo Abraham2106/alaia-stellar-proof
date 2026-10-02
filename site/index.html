@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ALAIA — reglas locales para pagos de agentes en Stellar</title>
+  <meta name="description" content="Pasarela local: reglas y un juez local deciden si un pago Classic que pide un agente sale. Recibo anclado en MEMO_HASH. Demo sobre Quickstart, sin mainnet.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ALAIA — reglas locales para pagos de agentes en Stellar">
+  <meta property="og:description" content="Un agente puede pedir un pago. Las reglas locales deciden si sale. Demo local sobre Stellar Quickstart; no usa mainnet.">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/site.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "name": "ALAIA — reglas locales para pagos de agentes en Stellar",
+        "inLanguage": "es",
+        "description": "Pasarela de políticas local para pagos que un agente de IA quiere hacer en Stellar Classic."
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "name": "ALAIA",
+        "programmingLanguage": "TypeScript",
+        "description": "Pasarela de políticas local para pagos Classic de Stellar. El modelo puede rechazar o escalar; no amplía permisos."
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link visually-hidden" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="./">ALAIA</a>
+      <nav class="site-nav" aria-label="Principal">
+        <ul role="list">
+          <li><a href="#flujo">Cómo pasa un pago</a></li>
+          <li><a href="#grant">Grant</a></li>
+          <li><a href="#tools">Tools</a></li>
+          <li><a href="#conformidad">Conformidad</a></li>
+          <li><a href="#rechazos">Rechazos</a></li>
+          <li><a href="#firmas">Firmas</a></li>
+          <li><a href="#recibo">Recibo</a></li>
+          <li><a href="limites/">Límites</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido" tabindex="-1">
+    <!-- 1. Hero -->
+    <section class="hero" aria-labelledby="titulo">
+      <div class="wrap">
+        <div class="hero-copy">
+          <p class="eyebrow">Pasarela de políticas local · Stellar Classic</p>
+          <h1 id="titulo">Una persona deja un grant. <span class="h1-quiet">El agente solo gasta dentro de ese grant.</span></h1>
+          <p class="lede">ALAIA verifica el mismo pago Classic para una wallet humana y para una wallet de agente. La policy corre primero. El modelo devuelve un veredicto en JSON y no firma. Sin el hash del grant, un pago de agente no tiene envelope.</p>
+          <div class="actions">
+            <a class="btn btn-primary" aria-disabled="true" data-tbd="repo-url">Ver el repositorio <span class="tbd">[TBD: URL del repositorio]</span></a>
+            <a class="btn btn-secondary" aria-disabled="true" data-tbd="quickstart-url">Correr la demo local <span class="tbd">[TBD: URL de docs/judge-quickstart.md]</span></a>
+          </div>
+          <p class="scope"><strong>Demo local sobre Stellar Quickstart. No usa mainnet.</strong> <a class="link-arrow" href="limites/">Qué demuestra y qué no →</a></p>
+        </div>
+
+        <figure class="trace" aria-labelledby="traza-titulo">
+          <figcaption>
+            <span class="eyebrow" id="traza-titulo">Recorrido de una solicitud</span>
+            <span class="source">packages/gateway · considerWithGraph() → consider()</span>
+          </figcaption>
+          <ol class="gates" role="list">
+            <li class="gate is-start">
+              <span class="gate-step">entrada</span>
+              <span class="gate-name">El agente pide un pago</span>
+              <span class="gate-fn">destino · activo · monto · comisión · operaciones</span>
+              <span class="gate-exit is-allow">propone; no firma</span>
+            </li>
+            <li class="gate">
+              <span class="gate-step">regla</span>
+              <span class="gate-name">Reglas deterministas</span>
+              <span class="gate-fn">evaluate()</span>
+              <span class="gate-exit"><span class="st st-deny">✕ deny</span> → envelope: null. El juez no se consulta.</span>
+            </li>
+            <li class="gate">
+              <span class="gate-step">regla</span>
+              <span class="gate-name">Grafo sintético de destinos</span>
+              <span class="gate-fn">assess()</span>
+              <span class="gate-exit"><span class="st st-deny">✕ graph_unknown</span> → envelope: null</span>
+            </li>
+            <li class="gate">
+              <span class="gate-step">juez</span>
+              <span class="gate-name">Juez local Qwen3-4B vía QVAC</span>
+              <span class="gate-fn">runJudge() → applyJudge()</span>
+              <span class="gate-exit"><span class="st st-deny">✕ deny</span> · <span class="st st-escalate">◇ escalate</span> · sin runtime → envelope: null</span>
+            </li>
+            <li class="gate">
+              <span class="gate-step">firma</span>
+              <span class="gate-name">Cuenta 2-de-2 firma</span>
+              <span class="gate-fn">signerA + signerB · master 0</span>
+              <span class="gate-exit is-allow"><span class="st st-allow">✓ allow</span> con código ok → envelope</span>
+            </li>
+            <li class="gate is-end">
+              <span class="gate-step">resultado</span>
+              <span class="gate-name">Recibo en MEMO_HASH</span>
+              <span class="gate-fn">sha256(recibo canónico)</span>
+              <span class="gate-exit is-allow">enviado a Stellar Quickstart local</span>
+            </li>
+          </ol>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 2. Así pasa un pago -->
+    <section class="section" id="flujo" aria-labelledby="flujo-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="flujo-titulo">Así pasa un pago por la pasarela</h2>
+        </div>
+        <ol class="steps" role="list">
+          <li>
+            <h3>El agente propone un pago.</h3>
+            <p>La propuesta llega como un pago canónico: destino, activo, monto, comisión y lista de operaciones. El modelo no recibe llaves.</p>
+          </li>
+          <li>
+            <h3>Reglas y grafo, antes de cualquier envío.</h3>
+            <p>Las reglas y un grafo sintético de destinos válidos se evalúan antes de cualquier envío. Si el destino no está en ese grafo, no hay transacción. Si el par origen–destino es conocido pero una regla dice no, tampoco.</p>
+          </li>
+          <li>
+            <h3>Un juez local emite el veredicto.</h3>
+            <p>Si las reglas permiten, un juez local — Qwen3-4B, servido por el núcleo QVAC del repositorio — devuelve un veredicto en JSON. Solo <code>allow</code> con el código <code>ok</code> deja seguir. Si las reglas rechazan, el juez no se consulta.</p>
+          </li>
+          <li>
+            <h3>El código firma y envía.</h3>
+            <p>Cuando todo encaja, el código construye el envelope, las dos llaves de gasto lo firman y se envía. El camino feliz no depende de la red pública: corre contra un Stellar Quickstart local.</p>
+          </li>
+        </ol>
+        <p class="callout">Si el runtime QVAC no está en marcha, hay timeout o la salida del modelo no es válida, el pago no sale: la decisión queda en <span class="st st-escalate">◇ escalate</span> y no hay envelope. <span class="source">DEC-0006</span></p>
+      </div>
+    </section>
+
+    <!-- Grant, tools, conformidad -->
+    <section class="section" id="grant" aria-labelledby="grant-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="grant-titulo">Así se autoriza</h2>
+        </div>
+        <ol class="steps" role="list">
+          <li>
+            <h3>La persona deja un grant.</h3>
+            <p>El grant fija destino, activo y monto máximo. Su hash es el SHA-256 canónico de ese objeto.</p>
+          </li>
+          <li>
+            <h3>El agente cita ese hash.</h3>
+            <p>Un pago de wallet <code>agent</code> tiene que caber en el grant. Sin grant, la razón es <code>grant_required</code> y no hay envelope.</p>
+          </li>
+          <li>
+            <h3>La policy corre antes que el modelo.</h3>
+            <p>Destino, activo o monto fuera del grant niegan con <code>grant_mismatch</code>. Un deny de policy no se convierte en allow.</p>
+          </li>
+        </ol>
+        <p class="callout">La wallet humana no necesita un grant previo: su verificación es el grant. <span class="source">DEC-0015</span></p>
+      </div>
+    </section>
+
+    <section class="section" id="tools" aria-labelledby="tools-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="tools-titulo">Qué tools llegan al modelo</h2>
+          <p>El modelo que propuso la tool no autoriza. Solo un payment ya permitido abre las preguntas.</p>
+        </div>
+        <ul class="rejections" role="list">
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">signer_change_denied</code></div>
+            <div>
+              <h3>Cambiar firmantes.</h3>
+              <p><code>setOptions</code> se niega en la policy. Las preguntas no se abren.</p>
+            </div>
+          </li>
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">trustline_closed</code></div>
+            <div>
+              <h3>Abrir un trustline.</h3>
+              <p><code>changeTrust</code> se niega. Este repo no construye ese envelope.</p>
+            </div>
+          </li>
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">contract_rail_closed</code></div>
+            <div>
+              <h3>Llamar un contrato.</h3>
+              <p><code>invokeContract</code> se niega. Soroban no es el camino de esta ola.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="conformidad" aria-labelledby="conformidad-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="conformidad-titulo">Conformidad</h2>
+          <p>Cinco casos en <code>corpus/payments/confirm</code>. La banda es 0,15. Si el caso aparece como su propio vecino, no conforma.</p>
+        </div>
+        <ul class="rejections" role="list">
+          <li class="rejection"><div class="codes"><code class="code-stamp">human-allow</code></div><div><h3>Pago alineado.</h3><p>Disposición oro: allow.</p></div></li>
+          <li class="rejection"><div class="codes"><code class="code-stamp">agent-no-grant</code></div><div><h3>Agente sin grant.</h3><p>Disposición oro: deny.</p></div></li>
+          <li class="rejection"><div class="codes"><code class="code-stamp">recipient-substitution</code></div><div><h3>Destinatario sustituido.</h3><p>Disposición oro: deny.</p></div></li>
+          <li class="rejection"><div class="codes"><code class="code-stamp">untrusted-instruction</code></div><div><h3>Instrucción dentro de la factura.</h3><p>Disposición oro: deny.</p></div></li>
+          <li class="rejection"><div class="codes"><code class="code-stamp">signer-change</code></div><div><h3>Cambio de firmantes.</h3><p>Disposición oro: deny.</p></div></li>
+        </ul>
+        <p class="callout">El registro <code>alaia-verify-1</code> cita el hash del grant, el del artefacto, el del corpus y los ids de vecinos. Reconstruye qué se comparó. No afirma que un modelo de decisión haya corrido: los pesos no están cargados. <span class="source">DEC-0015</span></p>
+      </div>
+    </section>
+
+    <!-- 3. Lo que se rechaza -->
+    <section class="section" id="rechazos" aria-labelledby="rechazos-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="rechazos-titulo">Esto se rechaza en lenguaje llano</h2>
+          <p>Cada caso termina igual: <code>envelope: null</code>, no hay transacción que firmar. Estos cinco tienen código y tests detrás. Las reglas no se detienen en el primer fallo: acumulan cada razón.</p>
+        </div>
+        <ul class="rejections" role="list">
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">over_cap</code></div>
+            <div>
+              <h3>Monto por encima del tope permitido.</h3>
+              <p>En el test: 10 000 001 stroops contra un tope de 10 000 000.</p>
+            </div>
+          </li>
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">destination_denied</code> <code class="code-stamp">graph_unknown</code></div>
+            <div>
+              <h3>Destino no permitido por política o por el grafo.</h3>
+              <p>Destino fuera de la lista permitida de la política, o par origen–destino sin arista en el grafo sintético.</p>
+            </div>
+          </li>
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">asset_denied</code> <code class="code-stamp">unsupported_asset</code></div>
+            <div>
+              <h3>Activo no permitido.</h3>
+              <p>Esta ola solo construye pagos en XLM: un activo de crédito se rechaza aunque aparezca en la política.</p>
+            </div>
+          </li>
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">fee_over_cap</code></div>
+            <div>
+              <h3>Comisión por encima del tope.</h3>
+              <p>En el test: 100 001 stroops contra un tope de 100 000.</p>
+            </div>
+          </li>
+          <li class="rejection">
+            <div class="codes"><code class="code-stamp">admin_operation</code></div>
+            <div>
+              <h3>Operaciones que no son un pago.</h3>
+              <p><code>setOptions</code>, <code>accountMerge</code>, <code>manageData</code>, <code>pathPayment</code>, <code>changeTrust</code>, <code>createAccount</code> o cualquier otra que no sea <code>payment</code>.</p>
+            </div>
+          </li>
+        </ul>
+        <p class="source">Códigos en packages/policy/src/evaluate.ts y packages/gateway/src/consider.ts · considerWithGraph.ts. Otros casos de la lista original están <a href="limites/#en-verificacion">en verificación</a>.</p>
+
+        <figure class="terminal" aria-labelledby="terminal-caption">
+          <pre tabindex="0"><code><span class="term-dim">$ npx vitest run --reporter=verbose</span>
+
+ RUN  v2.1.9 …/packages/policy
+
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; allows a payment that satisfies every rule
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies over_cap when amount exceeds maxAmountStroops
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies non_positive_amount for zero amount
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies destination_denied when destination is not allowlisted
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies asset_denied when asset is not allowlisted
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; allows credit asset when code and issuer match allowlist
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies fee_over_cap when fee exceeds maxFeeStroops
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies empty_operations when operation list is empty
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies admin_operation for each non-payment operation kind
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; denies admin_operation when amount is under cap but setOptions is present
+ ✓ tests/evaluate.test.ts &gt; evaluate &gt; accumulates every failing reason without stopping at the first
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  20:02:23
+   Duration  2.37s (transform 108ms, setup 0ms, collect 163ms, tests 15ms, environment 1ms, prepare 1.34s)</code></pre>
+          <figcaption id="terminal-caption">Salida real de los tests unitarios de <code>packages/policy</code>, commit <code>5d0a1ab</code>, 2026-10-01, Node v22.22.2. Ruta local recortada. Son pruebas de reglas: no usan red, ledger ni modelo. <a data-tbd="repo-url" aria-disabled="true">Ver los tests <span class="tbd">[TBD: URL del repositorio]</span></a></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 4. Dos firmas -->
+    <section class="section" id="firmas" aria-labelledby="firmas-titulo">
+      <div class="wrap split">
+        <div class="prose">
+          <h2 id="firmas-titulo">La cuenta exige dos firmas y una llave que no gasta</h2>
+          <p>La cuenta está configurada para que dos firmantes autoricen cada gasto y el peso del master sea cero. Hay una llave de recuperación que no puede mover fondos: en el test contra Quickstart, un pago firmado solo con ella devuelve <code>tx_bad_auth</code>.</p>
+          <p>Es una cuenta de presupuesto, no la wallet principal.</p>
+          <p class="callout">Límite: las dos llaves de gasto viven en el mismo host. Esto no protege frente a un administrador del host que tenga ambas seeds. <span class="source">docs/judge-quickstart.md</span></p>
+        </div>
+        <table class="signers">
+          <caption>Configuración de la cuenta de presupuesto, según <code>budgetAccountSetOptions()</code> en packages/stellar-classic</caption>
+          <thead>
+            <tr><th scope="col">Firmante</th><th scope="col">Rol</th><th scope="col">Peso</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row"><code>master</code></th><td>Llave original de la cuenta</td><td class="weight">0</td></tr>
+            <tr><th scope="row"><code>signerA</code></th><td>Gasto</td><td class="weight">1</td></tr>
+            <tr><th scope="row"><code>signerB</code></th><td>Gasto</td><td class="weight">1</td></tr>
+            <tr><th scope="row"><code>recoverySigner</code></th><td>Recuperación; no es un tercer voto</td><td class="weight">0</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row">Umbrales</th><td><code>low</code> · <code>med</code> · <code>high</code></td><td class="weight">2 · 2 · 2</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. Recibo -->
+    <section class="section" id="recibo" aria-labelledby="recibo-titulo">
+      <div class="wrap split">
+        <div class="prose">
+          <h2 id="recibo-titulo">Cada pago permitido deja un recibo</h2>
+          <p>El recibo acompaña al pago autorizado. Su hash va en el memo de la transacción y enlaza el recibo con lo que quedó en el ledger. Ese enlace no demuestra que el juez se ejecutó; demuestra qué recibo se asoció a ese envío.</p>
+          <p>El recibo guarda el modelo declarado, el hash de la solicitud al juez y su veredicto. No incluye el prompt completo ni el GGUF. Un rechazo también genera recibo, pero sin envelope no hay transacción que lo lleve.</p>
+          <p><span class="tbd">[TBD: captura de un recibo real y su memo en Horizon local, con commit y fecha]</span></p>
+        </div>
+        <figure class="codeblock" aria-labelledby="recibo-caption">
+          <pre tabindex="0"><code><span class="term-dim">// packages/receipt/src/types.ts</span>
+export interface Receipt {
+  policyVersion: string;
+  destination: string;
+  asset: ReceiptAsset;
+  amountStroops: string;
+  feeStroops: string;
+  decision: ReceiptDecision;
+  reasons: string[];
+  /** Integrity evidence only, not an attestation of model execution. */
+  judge?: {
+    model: "Qwen3-4B";
+    requestHash: string;
+    label: "allow" | "deny" | "escalate";
+    codes: string[];
+  };
+}
+
+<span class="term-dim">// packages/receipt/src/hash.ts</span>
+export function receiptMemoHash(receipt: Receipt): string {
+  const bytes = canonicalReceiptBytes(receipt);
+  // DEC-0004: integrity of the receipt, not proof the model ran
+  return createHash("sha256").update(bytes).digest("hex");
+}</code></pre>
+          <figcaption id="recibo-caption">Forma del recibo y cómo se calcula el valor de <code>MEMO_HASH</code>: SHA-256 del JSON canónico, con claves y razones ordenadas.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 6. Local -->
+    <section class="section" id="local" aria-labelledby="local-titulo">
+      <div class="wrap">
+        <div class="prose">
+          <h2 id="local-titulo">Todo ocurre en local</h2>
+          <p>La pasarela, el juez QVAC y el Quickstart de Stellar viven en tu entorno. Probar el flujo completo no requiere abrir el camino por internet.</p>
+          <p>El adaptador del juez solo acepta una URL loopback y no sigue redirects. La preparación sí necesita internet: dependencias npm, <code>@qvac/cli</code>, un GGUF de Qwen3-4B verificado y la imagen <code>stellar/quickstart</code>. Requiere Docker y Node.js 22+.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Qué no es -->
+    <section class="section" id="que-no-es" aria-labelledby="no-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="no-titulo">Qué no es</h2>
+        </div>
+        <ul class="ruled not-list" role="list">
+          <li><span>No es una prueba de que el modelo se ejecutó. <code>MEMO_HASH</code> ancla la integridad del recibo.</span></li>
+          <li><span>No es una wallet principal. Es una cuenta de presupuesto con dos llaves de gasto.</span></li>
+          <li><span>No usa mainnet. El camino feliz no sale a testnet, futurenet ni mainnet.</span></li>
+          <li><span>No usa x402 ni Soroban en esta ola: son pagos Classic.</span></li>
+          <li><span>No tiene robustez medida del juez frente a prompt injection ni una tasa de falsos positivos.</span></li>
+        </ul>
+        <p class="more"><a class="link-arrow" href="limites/">Leer qué demuestra y qué no →</a></p>
+      </div>
+    </section>
+
+    <!-- 8. Trabajo relacionado -->
+    <section class="section" id="relacionado" aria-labelledby="rel-titulo">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="rel-titulo">Trabajo relacionado</h2>
+          <p>Otros proyectos cubren partes de este problema en Stellar. Se citan como contexto.</p>
+        </div>
+        <ul class="related" role="list">
+          <li>
+            <h3><a href="https://github.com/Soneso/stellar-agent-wallet" rel="noopener">Stellar Agent Wallet (Soneso)</a></h3>
+            <p>Wallet para agentes de IA, en alpha: motor de políticas, aprobación de operador y registro de auditoría encadenado por hash.</p>
+          </li>
+          <li>
+            <h3><a href="https://docs.openzeppelin.com/stellar-contracts/accounts/context-rules" rel="noopener">Smart accounts de OpenZeppelin</a></h3>
+            <p>En Soroban: separan quién firma, las reglas de contexto y las políticas, como límites de gasto.</p>
+          </li>
+        </ul>
+        <p class="callout">ALAIA prueba otra pieza, en Stellar Classic: un juez local que corre después de las reglas y que solo puede rechazar o escalar; no amplía permisos. Cuánto aporta frente a las reglas solas todavía no está medido.</p>
+      </div>
+    </section>
+
+    <!-- 9. CTA final -->
+    <section class="section" aria-labelledby="cierre-titulo">
+      <div class="wrap">
+        <div class="closing">
+          <h2 id="cierre-titulo" class="visually-hidden">Siguiente paso</h2>
+          <p>Abre el repositorio para leer cómo está armado, o levanta el Quickstart local y recorre el camino feliz tú mismo.</p>
+          <div class="actions">
+            <a class="btn btn-primary" aria-disabled="true" data-tbd="repo-url">Ver el repositorio <span class="tbd">[TBD: URL del repositorio]</span></a>
+            <a class="btn btn-secondary" aria-disabled="true" data-tbd="quickstart-url">Correr la demo local <span class="tbd">[TBD: URL de docs/judge-quickstart.md]</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+          <p>ALAIA · demo de hackathon <span class="tbd">[TBD: evento]</span> · estándar <code>alaia-verify-1</code> en <code>DEC-0015</code>.</p>
+      <ul role="list">
+        <li><a href="limites/">Qué demuestra y qué no</a></li>
+        <li><a href="llms.txt">llms.txt</a></li>
+        <li>Licencia <span class="tbd">[TBD: licencia]</span></li>
+        <li>Autoría y contacto <span class="tbd">[TBD: autoría y contacto]</span></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>
