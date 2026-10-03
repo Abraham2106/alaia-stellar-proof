@@ -8,7 +8,7 @@ ALAIA verifica el mismo pago Classic para una wallet humana y para una wallet de
 
 El agente propone un pago. Las reglas y un grafo sintético de destinos válidos se evalúan antes de cualquier envío. Si el destino no está en ese grafo, no hay transacción. Si el par origen–destino es conocido pero una regla dice no, tampoco.
 
-Un juez local — Qwen3-4B, servido por el núcleo QVAC del repositorio — emite el veredicto cuando hace falta. Si ese runtime no está en marcha, el pago no sale.
+Un juez local — strands-decider 2B, por el comando `strands-decider ask` — emite el veredicto cuando hace falta. Si ese runtime no está en marcha, el pago no sale.
 
 ## Así se autoriza
 
@@ -45,7 +45,7 @@ El recibo acompaña al pago autorizado. Su hash va en el memo de la transacción
 
 ## Todo ocurre en local
 
-La pasarela, el juez QVAC y el Quickstart de Stellar viven en tu entorno. Probar el flujo completo no requiere abrir el camino por internet.
+La pasarela, el juez strands-decider y el Quickstart de Stellar viven en tu entorno. Probar el flujo completo no requiere abrir el camino por internet.
 
 ---
 

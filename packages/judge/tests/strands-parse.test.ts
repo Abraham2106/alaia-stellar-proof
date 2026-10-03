@@ -3,7 +3,7 @@ import { parseStrandsDeciderJson } from "../src/strands-parse.js";
 
 function sampleJson(overrides: Record<string, unknown> = {}): string {
   const base = {
-    model: "strands-decider-2B-hobson-v19",
+    model: "strands-decider-0.1.0",
     answers: {
       noul_0: { type: "noul", noul: 0.9 },
       noul_1: { type: "noul", noul: 0.1 },
@@ -48,6 +48,23 @@ describe("parseStrandsDeciderJson", () => {
     expect(parseStrandsDeciderJson(sampleJson({ model: "other" }))).toEqual({
       label: "escalate",
       codes: ["schema_invalid"],
+    });
+  });
+
+  it("rejects the checkpoint id in stdout model; the CLI writes the library version", () => {
+    expect(
+      parseStrandsDeciderJson(sampleJson({ model: "strands-decider-2B-hobson-v19" })),
+    ).toEqual({
+      label: "escalate",
+      codes: ["schema_invalid"],
+    });
+  });
+
+  it("parses JSON that rich colored with ANSI", () => {
+    const colored = `\u001b[1m${sampleJson()}\u001b[0m`;
+    expect(parseStrandsDeciderJson(colored)).toEqual({
+      label: "allow",
+      codes: ["ok"],
     });
   });
 

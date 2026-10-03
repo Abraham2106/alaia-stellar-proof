@@ -1,8 +1,8 @@
 # Graders
 
 La verificación pública actual se ejecuta según [runner.md](runner.md).
-Los tests unitarios de gateway sustituyen explícitamente QVAC; el fixture HTTP
-comprueba transporte. Ninguno prueba inferencia ni robustez del modelo.
+Los tests unitarios de gateway sustituyen explícitamente strands-decider; el fixture
+del CLI comprueba transporte. Ninguno prueba inferencia ni robustez del modelo.
 
 packages/grader-negative verifica únicamente reglas deterministas: operación
 administrativa, destino no permitido, comisión excesiva y un control permitido.

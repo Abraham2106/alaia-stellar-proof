@@ -10,7 +10,7 @@ if (mode === "hang") {
 } else {
   const payloads = {
     allow: {
-      model: "strands-decider-2B-hobson-v19",
+      model: "strands-decider-0.1.0",
       answers: {
         noul_0: { type: "noul", noul: 0.91 },
         noul_1: { type: "noul", noul: 0.08 },
@@ -25,7 +25,7 @@ if (mode === "hang") {
       },
     },
     deny_mismatch: {
-      model: "strands-decider-2B-hobson-v19",
+      model: "strands-decider-0.1.0",
       answers: {
         noul_0: { type: "noul", noul: 0.12 },
         noul_1: { type: "noul", noul: 0.05 },
@@ -40,7 +40,7 @@ if (mode === "hang") {
       },
     },
     invalid_schema: {
-      model: "strands-decider-2B-hobson-v19",
+      model: "strands-decider-0.1.0",
       answers: {
         noul_0: { type: "noul", noul: 0.5 },
         noul_1: { type: "noul", noul: 0.1 },

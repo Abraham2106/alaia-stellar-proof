@@ -1,6 +1,6 @@
 // DEC-0004: one required local judge; deterministic policy outranks the model.
 import { createHash } from "node:crypto";
-import { applyJudge, qvacJudgeRequest, runJudge } from "@alaia/judge";
+import { applyJudge, runJudge, STRANDS_MODEL, strandsJudgeRequest } from "@alaia/judge";
 import type { JudgeVerdict } from "@alaia/judge";
 import { evaluate } from "@alaia/policy";
 import type { Asset, BudgetPolicy, CanonicalPayment, Grant, OperationKind, PolicyDecision } from "@alaia/policy";
@@ -98,7 +98,8 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
       payment: { ...payment, amount: payment.amount.toString(), feeStroops: payment.feeStroops.toString() },
       userIntent: input.userIntent ?? null, untrustedEvidence: input.evidence ?? null,
     });
-    const request = qvacJudgeRequest(prompt);
+    // DEC-0016: preimage is the strands-decider ask body, not a QVAC chat completion.
+    const request = strandsJudgeRequest(prompt);
     judgeRequestJson = JSON.stringify(request);
     let verdict: JudgeVerdict;
     try {
@@ -109,7 +110,7 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
     }
     decision = applyJudge(policy.decision, verdict);
     judge = {
-      model: request.model,
+      model: STRANDS_MODEL,
       requestHash: createHash("sha256").update(judgeRequestJson).digest("hex"),
       label: verdict.label, codes: [...verdict.codes],
     };

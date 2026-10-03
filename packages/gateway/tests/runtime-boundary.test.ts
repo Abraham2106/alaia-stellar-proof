@@ -3,8 +3,8 @@ import { Keypair } from "@stellar/stellar-sdk";
 import { consider } from "../src/consider.js";
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
-it("real gateway with disabled QVAC rejects a policy-allowed payment without any network call", async () => {
-  vi.stubEnv("ALAIA_QVAC", "0");
+it("real gateway with strands disabled rejects a policy-allowed payment without any network call", async () => {
+  vi.stubEnv("ALAIA_STRANDS", "0");
   const network = vi.fn().mockRejectedValue(new Error("network forbidden"));
   vi.stubGlobal("fetch", network);
   const destination = Keypair.random().publicKey();

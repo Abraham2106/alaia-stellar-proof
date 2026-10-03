@@ -1,9 +1,14 @@
 // DEC-0016: local strands-decider ask; no QVAC
 
 import type { JudgeCode, JudgeLabel, JudgeVerdict } from "./types.js";
-import { STRANDS_MODEL } from "./strands-questions.js";
 
 const LABELS: ReadonlySet<string> = new Set(["allow", "escalate", "deny"]);
+// strands-decider 0.1.0 writes the library id here, not the checkpoint.
+const CLI_MODEL = "strands-decider-0.1.0";
+
+function stripAnsi(text: string): string {
+  return text.replace(/\u001b\[[0-9;]*[A-Za-z]/g, "");
+}
 
 function schemaInvalidVerdict(): JudgeVerdict {
   return { label: "escalate", codes: ["schema_invalid"] };
@@ -62,7 +67,7 @@ function readChoice(answer: unknown): JudgeLabel | null {
 export function parseStrandsDeciderJson(text: string): JudgeVerdict {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(stripAnsi(text));
   } catch {
     return schemaInvalidVerdict();
   }
@@ -72,7 +77,7 @@ export function parseStrandsDeciderJson(text: string): JudgeVerdict {
   }
 
   const root = parsed as Record<string, unknown>;
-  if (root.model !== STRANDS_MODEL) {
+  if (root.model !== CLI_MODEL) {
     return schemaInvalidVerdict();
   }
 

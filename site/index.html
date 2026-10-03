@@ -93,7 +93,7 @@
             </li>
             <li class="gate">
               <span class="gate-step">juez</span>
-              <span class="gate-name">Juez local Qwen3-4B vía QVAC</span>
+              <span class="gate-name">Juez local strands-decider 2B</span>
               <span class="gate-fn">runJudge() → applyJudge()</span>
               <span class="gate-exit"><span class="st st-deny">✕ deny</span> · <span class="st st-escalate">◇ escalate</span> · sin runtime → envelope: null</span>
             </li>
@@ -131,14 +131,14 @@
           </li>
           <li>
             <h3>Un juez local emite el veredicto.</h3>
-            <p>Si las reglas permiten, un juez local — Qwen3-4B, servido por el núcleo QVAC del repositorio — devuelve un veredicto en JSON. Solo <code>allow</code> con el código <code>ok</code> deja seguir. Si las reglas rechazan, el juez no se consulta.</p>
+            <p>Si las reglas permiten, un juez local — strands-decider 2B, por <code>strands-decider ask</code> — devuelve un veredicto en JSON. Solo <code>allow</code> con el código <code>ok</code> deja seguir. Si las reglas rechazan, el juez no se consulta.</p>
           </li>
           <li>
             <h3>El código firma y envía.</h3>
             <p>Cuando todo encaja, el código construye el envelope, las dos llaves de gasto lo firman y se envía. El camino feliz no depende de la red pública: corre contra un Stellar Quickstart local.</p>
           </li>
         </ol>
-        <p class="callout">Si el runtime QVAC no está en marcha, hay timeout o la salida del modelo no es válida, el pago no sale: la decisión queda en <span class="st st-escalate">◇ escalate</span> y no hay envelope. <span class="source">DEC-0006</span></p>
+        <p class="callout">Si <code>ALAIA_STRANDS</code> no está en marcha, hay timeout o la salida del modelo no es válida, el pago no sale: la decisión queda en <span class="st st-escalate">◇ escalate</span> y no hay envelope. <span class="source">DEC-0016</span></p>
       </div>
     </section>
 
@@ -320,7 +320,7 @@
         <div class="prose">
           <h2 id="recibo-titulo">Cada pago permitido deja un recibo</h2>
           <p>El recibo acompaña al pago autorizado. Su hash va en el memo de la transacción y enlaza el recibo con lo que quedó en el ledger. Ese enlace no demuestra que el juez se ejecutó; demuestra qué recibo se asoció a ese envío.</p>
-          <p>El recibo guarda el modelo declarado, el hash de la solicitud al juez y su veredicto. No incluye el prompt completo ni el GGUF. Un rechazo también genera recibo, pero sin envelope no hay transacción que lo lleve.</p>
+          <p>El recibo guarda el modelo declarado, el hash de la solicitud al juez y su veredicto. No incluye el texto completo del pago ni los pesos. Un rechazo también genera recibo, pero sin envelope no hay transacción que lo lleve.</p>
           <p><span class="tbd">[TBD: captura de un recibo real y su memo en Horizon local, con commit y fecha]</span></p>
         </div>
         <figure class="codeblock" aria-labelledby="recibo-caption">
@@ -335,7 +335,7 @@ export interface Receipt {
   reasons: string[];
   /** Integrity evidence only, not an attestation of model execution. */
   judge?: {
-    model: "Qwen3-4B";
+    model: "strands-decider-2B-hobson-v19";
     requestHash: string;
     label: "allow" | "deny" | "escalate";
     codes: string[];
@@ -358,8 +358,8 @@ export function receiptMemoHash(receipt: Receipt): string {
       <div class="wrap">
         <div class="prose">
           <h2 id="local-titulo">Todo ocurre en local</h2>
-          <p>La pasarela, el juez QVAC y el Quickstart de Stellar viven en tu entorno. Probar el flujo completo no requiere abrir el camino por internet.</p>
-          <p>El adaptador del juez solo acepta una URL loopback y no sigue redirects. La preparación sí necesita internet: dependencias npm, <code>@qvac/cli</code>, un GGUF de Qwen3-4B verificado y la imagen <code>stellar/quickstart</code>. Requiere Docker y Node.js 22+.</p>
+          <p>La pasarela, el juez strands-decider y el Quickstart de Stellar viven en tu entorno. Probar el flujo completo no requiere abrir el camino por internet.</p>
+          <p>El juez es el comando local <code>strands-decider ask</code>, no un servicio en la red. La preparación sí necesita internet: dependencias npm, <code>pip install strands-decider</code> y la imagen <code>stellar/quickstart</code>. Requiere Docker, Python y Node.js 22+.</p>
         </div>
       </div>
     </section>

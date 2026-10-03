@@ -10,7 +10,7 @@ Ese camino todavía no está en el código.
 
 ## Flujo actual
 
-TypeScript (DEC-0003), Stellar Quickstart standalone y Qwen3-4B vía QVAC.
+TypeScript (DEC-0003), Stellar Quickstart standalone y strands-decider 2B por CLI local (DEC-0016).
 consider() evalúa policy antes del judge obligatorio. Solo ambos allow producen
 un envelope; el caller comprueba decision y envelope antes de firmar.
 considerWithGraph() exige que la pareja del grafo coincida con el pago real:
@@ -25,7 +25,7 @@ protege contra su administrador.
 
 El gateway conserva `judgeRequestJson`, preimagen exacta de requestHash. El bundle
 versionado de receipt permite persistir y comprobar esos hashes (DEC-0010);
-comparar con el ledger y ejecutar Qwen real son verificaciones separadas.
+comparar con el ledger y ejecutar strands-decider real son verificaciones separadas.
 
 ## Ejecutar y verificar
 
@@ -34,7 +34,8 @@ comparar con el ledger y ejecutar Qwen real son verificaciones separadas.
 - [Decisiones](docs/design/DECISIONS.md)
 - Idea.md y alaia-proof-context.md: fuentes y límites de producto.
 
-La demo completa requiere Docker, QVAC y un GGUF local verificado. Las pruebas
-con dobles explícitos no prueban inferencia. Qwen está pausado por instrucción
-del usuario; la aceptación real en ledger permanece pendiente. Ver
+La demo completa requiere Docker y `pip install strands-decider`. Las pruebas
+con dobles explícitos no prueban inferencia. El CLI oficial no cuantiza; si el
+bf16 no cabe en RAM, la prueba live opt-in informa el fallo y no sustituye el
+comando (DEC-0016). Ver
 [estado y evidencia de reparación](docs/ESTADO-REPARACION-NUCLEO-2026-10-01.md).

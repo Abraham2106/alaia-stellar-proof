@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Keypair } from "@stellar/stellar-sdk";
-import { qvacJudgeRequest, runJudge } from "@alaia/judge";
+import { runJudge, strandsJudgeRequest } from "@alaia/judge";
 import {
   CORPUS_PAYMENTS,
   QUICKSTART_FIXTURE_DESTINATION_PUBLIC,
@@ -54,37 +54,34 @@ describe("DEC-0010 judgeRequestJson preimage", () => {
     expect(hash).toBe(result.receipt.judge?.requestHash);
   });
 
-  it("judgeRequestJson matches JSON.stringify(qvacJudgeRequest(prompt)) from runJudge", async () => {
+  it("judgeRequestJson matches JSON.stringify(strandsJudgeRequest(prompt)) from runJudge", async () => {
     const input = baseInput({ evidence: "invoice café ☕" });
     const result = await consider(input);
     const prompt = judge.mock.calls[0]![0] as string;
-    expect(result.judgeRequestJson).toBe(JSON.stringify(qvacJudgeRequest(prompt)));
+    expect(result.judgeRequestJson).toBe(JSON.stringify(strandsJudgeRequest(prompt)));
   });
 
-  it("embeds system prompt, user intent, policy, and Unicode evidence in the descriptor", async () => {
+  it("embeds checkpoint, user intent, policy, and Unicode evidence in the descriptor", async () => {
     const intent = "Pagar proveedor — ñoño 日本語";
     const evidence = "Factura #42 — €500";
     const result = await consider(baseInput({ userIntent: intent, evidence }));
-    const parsed = JSON.parse(result.judgeRequestJson!) as ReturnType<typeof qvacJudgeRequest>;
-    expect(parsed.systemPrompt).toContain("payment reviewer");
-    const inner = JSON.parse(parsed.prompt);
+    const parsed = JSON.parse(result.judgeRequestJson!) as ReturnType<typeof strandsJudgeRequest>;
+    expect(parsed.checkpoint).toBe("StrandsAgents/strands-decider-2B-hobson-v19");
+    const inner = JSON.parse(parsed.state);
     expect(inner.userIntent).toBe(intent);
     expect(inner.untrustedEvidence).toBe(evidence);
     expect(inner.policy.maxAmountStroops).toBe("10000000");
     expect(inner.payment.destination).toBe(DEST);
   });
 
-  it("does not add api keys, credentials, or URLs beyond the QVAC descriptor", async () => {
+  it("does not add api keys, credentials, or URLs beyond the strands descriptor", async () => {
     const result = await consider(baseInput());
     const parsed = JSON.parse(result.judgeRequestJson!) as Record<string, unknown>;
     expect(parsed).not.toHaveProperty("apiKey");
     expect(parsed).not.toHaveProperty("credentials");
     expect(parsed).not.toHaveProperty("url");
     expect(parsed).not.toHaveProperty("api_key");
-    expect(Object.keys(parsed).sort()).toEqual(
-      ["maxTokens", "model", "prompt", "reasoningBudget", "responseFormat", "schema", "seed", "systemPrompt", "temperature"].sort(),
-    );
-    expect(parsed.seed).toBe(42);
+    expect(Object.keys(parsed).sort()).toEqual(["checkpoint", "questions", "state"]);
   });
 
   it("includes judgeRequestJson when judge escalates (runtime unavailable)", async () => {

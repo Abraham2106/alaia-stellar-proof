@@ -52,8 +52,8 @@
             <span class="source">DEC-0004 · DEC-0006</span>
           </li>
           <li>
-            <span class="claim"><span class="mark st st-allow" aria-hidden="true">✓</span><span>Sin runtime QVAC, con timeout o con salida inválida del modelo, no hay envelope.</span></span>
-            <span class="source">DEC-0006</span>
+            <span class="claim"><span class="mark st st-allow" aria-hidden="true">✓</span><span>Sin <code>ALAIA_STRANDS=1</code>, con timeout o con salida inválida del modelo, no hay envelope.</span></span>
+            <span class="source">DEC-0016</span>
           </li>
           <li>
             <span class="claim"><span class="mark st st-allow" aria-hidden="true">✓</span><span>Cuenta de presupuesto 2-de-2 con <code>masterWeight = 0</code>. La llave de recuperación tiene peso 0: un pago firmado solo con ella devuelve <code>tx_bad_auth</code> en el test contra Quickstart.</span></span>
@@ -76,7 +76,7 @@
         </div>
         <ul class="claims" role="list">
           <li>
-            <span class="claim"><span class="mark st st-deny" aria-hidden="true">✕</span><span>El recibo no demuestra que el juez se ejecutó, ni la procedencia del GGUF, ni que las dos claves sean independientes.</span></span>
+            <span class="claim"><span class="mark st st-deny" aria-hidden="true">✕</span><span>El recibo no demuestra que el juez se ejecutó, ni la procedencia de los pesos, ni que las dos claves sean independientes.</span></span>
             <span class="source">DEC-0006</span>
           </li>
           <li>
@@ -84,7 +84,7 @@
             <span class="source">docs/judge-quickstart.md</span>
           </li>
           <li>
-            <span class="claim"><span class="mark st st-deny" aria-hidden="true">✕</span><span>El gateway aún no verifica el hash del GGUF. El alias <code>Qwen3-4B</code> identifica la configuración, no autentica los weights.</span></span>
+            <span class="claim"><span class="mark st st-deny" aria-hidden="true">✕</span><span>El gateway no autentica los pesos. El id <code>strands-decider-2B-hobson-v19</code> nombra el checkpoint, no demuestra qué archivo se cargó.</span></span>
             <span class="source">docs/judge-quickstart.md</span>
           </li>
           <li>
@@ -135,8 +135,8 @@
       <section class="section" aria-labelledby="prep-titulo">
         <div class="prose">
           <h2 id="prep-titulo">Qué hace falta para correrlo</h2>
-          <p>Docker, Node.js 22+, <code>@qvac/cli</code> y un GGUF de Qwen3-4B de procedencia confiable con su hash verificado. La preparación descarga dependencias y la imagen <code>stellar/quickstart</code>; el pago en sí no sale a internet.</p>
-          <p>Con <code>ALAIA_LIVE=1</code>, si falta Horizon local o QVAC, la prueba falla en vez de saltarse.</p>
+          <p>Docker, Node.js 22+ y <code>pip install strands-decider</code>. La preparación descarga dependencias y la imagen <code>stellar/quickstart</code>; el pago en sí no sale a internet.</p>
+          <p>Con <code>ALAIA_LIVE=1</code>, si falta Horizon local o <code>ALAIA_STRANDS=1</code>, la prueba falla en vez de saltarse.</p>
           <p class="source">docs/judge-quickstart.md · <span class="tbd">[TBD: URL del repositorio]</span></p>
         </div>
       </section>
