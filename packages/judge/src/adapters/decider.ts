@@ -1,14 +1,15 @@
-// DEC-0016: local strands-decider ask; no QVAC
-// DEC-0017: default spawn is packages/judge/scripts/decider-ask.py (decider-ai)
+// DEC-0017: Mapika/decider-0.8b via decider-ask.py
+// DEC-0018: default System One adapter (spawn lives here, not strands-runner)
 
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildStrandsAskArgv, type StrandsJudgeRequest } from "./strands-request.js";
+import { buildStrandsAskArgv } from "../strands-request.js";
+import type { SystemOneAdapter, SystemOneRequest } from "./types.js";
 
 const DEFAULT_DECIDER_ASK = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../scripts/decider-ask.py",
+  "../../scripts/decider-ask.py",
 );
 
 function deciderSpawn(): {
@@ -36,7 +37,7 @@ function timeoutMs(): number {
   return value;
 }
 
-export async function runStrandsDecider(request: StrandsJudgeRequest): Promise<string> {
+async function askDecider(request: SystemOneRequest): Promise<string> {
   const { command, prefixArgs, env } = deciderSpawn();
   const argv = [...prefixArgs, ...buildStrandsAskArgv(request)];
 
@@ -82,3 +83,10 @@ export async function runStrandsDecider(request: StrandsJudgeRequest): Promise<s
     });
   });
 }
+
+export const deciderAdapter: SystemOneAdapter = {
+  id: "decider-0.8b",
+  modelId: "decider-0.8b",
+  checkpoint: "Mapika/decider-0.8b",
+  ask: askDecider,
+};

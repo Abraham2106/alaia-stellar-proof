@@ -4,7 +4,7 @@
 pip install decider-ai
 ```
 
-Checkpoint único (DEC-0017): `Mapika/decider-0.8b`. El runner Node ejecuta `packages/judge/scripts/decider-ask.py` (misma forma de argv que `strands-decider ask`). `strands-decider` 0.1.0 no puede cargar este checkpoint. En CPU, el proceso hijo lleva `USE_HUB_KERNELS=NO` (sin Triton/FLA como requisito del pago). Sin `--device` en el spawn del producto ni otro checkpoint. Si `python3` no tiene `decider`, apunta `ALAIA_STRANDS_PYTHON` al intérprete del venv.
+Checkpoint único (DEC-0017): `Mapika/decider-0.8b`. Adapter por defecto (DEC-0018): `ALAIA_JUDGE_ADAPTER` = `decider-0.8b`. El runner Node ejecuta `packages/judge/scripts/decider-ask.py` (misma forma de argv que `strands-decider ask`). `strands-decider` 0.1.0 no puede cargar este checkpoint. En CPU, el proceso hijo lleva `USE_HUB_KERNELS=NO` (sin Triton/FLA como requisito del pago). Sin `--device` en el spawn del producto ni otro checkpoint. Si `python3` no tiene `decider`, apunta `ALAIA_STRANDS_PYTHON` al intérprete del venv.
 
 Comprobación manual (sustituye `<state>` por el texto de pago que recibe el judge):
 

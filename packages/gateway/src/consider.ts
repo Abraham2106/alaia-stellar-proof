@@ -1,6 +1,13 @@
 // DEC-0004: one required local judge; deterministic policy outranks the model.
+// DEC-0018: receipt judge model and request checkpoint follow the active adapter.
 import { createHash } from "node:crypto";
-import { applyJudge, runJudge, STRANDS_MODEL, strandsJudgeRequest } from "@alaia/judge";
+import {
+  activeAdapterId,
+  applyJudge,
+  getAdapter,
+  runJudge,
+  strandsJudgeRequest,
+} from "@alaia/judge";
 import type { JudgeVerdict } from "@alaia/judge";
 import { evaluate } from "@alaia/policy";
 import type { Asset, BudgetPolicy, CanonicalPayment, Grant, OperationKind, PolicyDecision } from "@alaia/policy";
@@ -98,11 +105,14 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
       payment: { ...payment, amount: payment.amount.toString(), feeStroops: payment.feeStroops.toString() },
       userIntent: input.userIntent ?? null, untrustedEvidence: input.evidence ?? null,
     });
-    // DEC-0016 / DEC-0017: preimage is the decider-ask.py argv body, not a QVAC chat completion.
-    const request = strandsJudgeRequest(prompt);
-    judgeRequestJson = JSON.stringify(request);
+    // DEC-0016 / DEC-0017 / DEC-0018: preimage is the adapter ask body, not a QVAC chat completion.
     let verdict: JudgeVerdict;
+    let receiptModelId = activeAdapterId();
     try {
+      const adapter = getAdapter(activeAdapterId());
+      receiptModelId = adapter.modelId;
+      const request = strandsJudgeRequest(prompt);
+      judgeRequestJson = JSON.stringify(request);
       // Never consume caller-provided verdicts. Validate at the authorization boundary.
       verdict = await runJudge(prompt);
     } catch {
@@ -110,8 +120,8 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
     }
     decision = applyJudge(policy.decision, verdict);
     judge = {
-      model: STRANDS_MODEL,
-      requestHash: createHash("sha256").update(judgeRequestJson).digest("hex"),
+      model: receiptModelId as NonNullable<Receipt["judge"]>["model"],
+      requestHash: createHash("sha256").update(judgeRequestJson ?? "").digest("hex"),
       label: verdict.label, codes: [...verdict.codes],
     };
     if (decision !== "allow") reasons.push(decision === "deny" ? "judge_deny" : "judge_escalate", ...verdict.codes);

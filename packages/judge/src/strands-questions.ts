@@ -1,6 +1,7 @@
 // DEC-0016: local strands-decider ask; no QVAC
 // DEC-0017: Mapika/decider-0.8b via decider-ask.py
 // DEC-0014: frozen Verify 1 question set
+// DEC-0018: STRANDS_* mirror the default adapter for legacy imports
 
 export const STRANDS_CHECKPOINT = "Mapika/decider-0.8b";
 export const STRANDS_MODEL = "decider-0.8b";

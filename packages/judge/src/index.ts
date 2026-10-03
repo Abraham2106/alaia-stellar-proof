@@ -1,3 +1,6 @@
+export { activeAdapterId, getAdapter, registerAdapter } from "./adapters/registry.js";
+export type { SystemOneAdapter, SystemOneRequest } from "./adapters/types.js";
+export { UnknownAdapterError } from "./adapters/types.js";
 export { applyJudge } from "./apply.js";
 export { parseJudgeVerdict } from "./parse.js";
 export { parseStrandsDeciderJson } from "./strands-parse.js";
