@@ -6,10 +6,10 @@ Un worker toca un seam; ninguno edita código de otro.
 | id | path | owns | must not own | status |
 |---|---|---|---|---|
 | S-policy | packages/policy/ | reglas deterministas, pago canónico | red, firmas | accepted |
-| S-stellar | packages/stellar-classic/ | envelopes, MEMO_HASH, SetOptions, firma aprobada, backup cifrado DEC-0009 | policy, QVAC, submit | accepted |
+| S-stellar | packages/stellar-classic/ | envelopes, MEMO_HASH, SetOptions, firma aprobada, backup cifrado DEC-0009 | policy, strands-decider, submit | accepted |
 | S-receipt | packages/receipt/ | formato canónico, hash, bundle DEC-0010 | autorizar, firmar | accepted |
 | S-local | packages/localnet/ | plan Quickstart, URL local | protocolo del pago | accepted |
-| S-judge | packages/judge/ | QVAC local, Qwen3-4B, confirmación de porcentajes DEC-0014 | ampliar caps, firmar, entrenar Laya | accepted |
+| S-judge | packages/judge/ | strands-decider ask DEC-0016, confirmación de porcentajes DEC-0014 | ampliar caps, firmar, entrenar Laya, Bedrock | accepted |
 | S-laya | packages/laya/ y corpus/payments/ | conformidad DEC-0015, oro confirm, banda | pesos, red, policy, receipt | accepted |
 | S-gateway | packages/gateway/ | policy, identidad del grafo, judge, receipt, envelope | firmar, submit | accepted |
 | S-rag | packages/rag-graph/ | corpus sintético, retrieval, grafo | autorizar solo | accepted |

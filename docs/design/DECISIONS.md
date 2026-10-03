@@ -20,6 +20,7 @@ Fuente compacta para inyectar en workers. Detalle en `DEC-*.md`.
 | DEC-0013 | Identidades distintas en setup 2-de-2 | accepted |
 | DEC-0014 | Verify 1: Laya puntúa, el judge confirma porcentajes | accepted |
 | DEC-0015 | Grant humano, compuerta de tools y suite confirm | accepted |
+| DEC-0016 | Judge local: strands-decider ask; QVAC fuera | accepted |
 
 Si dos planners contradicen una fila, no se mergea código. Se abre reconciliación
 de docs y se incrementa el id; no se agregan sufijos al id.
