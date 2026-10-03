@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyJudge,
   parseJudgeVerdict,
-  qvacJudgeRequest,
   runJudge,
+  strandsJudgeRequest,
+  STRANDS_CHECKPOINT,
 } from "../src/index.js";
 
 describe("parseJudgeVerdict", () => {
@@ -48,29 +49,19 @@ describe("applyJudge", () => {
 });
 
 describe("runJudge", () => {
-  const previousQvac = process.env.ALAIA_QVAC;
+  const previousStrands = process.env.ALAIA_STRANDS;
 
   afterEach(() => {
     vi.unstubAllEnvs();
-    if (previousQvac === undefined) {
-      delete process.env.ALAIA_QVAC;
+    if (previousStrands === undefined) {
+      delete process.env.ALAIA_STRANDS;
     } else {
-      process.env.ALAIA_QVAC = previousQvac;
+      process.env.ALAIA_STRANDS = previousStrands;
     }
   });
 
-  it("escalates when ALAIA_QVAC is unset", async () => {
-    delete process.env.ALAIA_QVAC;
-    const verdict = await runJudge("pay office");
-    expect(verdict).toEqual({
-      label: "escalate",
-      codes: ["runtime_unavailable"],
-    });
-  });
-
-  it("escalates when ALAIA_QVAC=1 but the local server is unavailable", async () => {
-    process.env.ALAIA_QVAC = "1";
-    vi.stubEnv("ALAIA_QVAC_URL", "http://127.0.0.1:1/v1");
+  it("escalates when ALAIA_STRANDS is unset", async () => {
+    delete process.env.ALAIA_STRANDS;
     const verdict = await runJudge("pay office");
     expect(verdict).toEqual({
       label: "escalate",
@@ -79,15 +70,15 @@ describe("runJudge", () => {
   });
 });
 
-describe("qvacJudgeRequest", () => {
-  it("pins model, temperature 0, and seed 42", () => {
-    const req = qvacJudgeRequest("review this payment");
-    expect(req).toMatchObject({
-      model: "Qwen3-4B",
-      responseFormat: "json_schema",
-      temperature: 0,
-      seed: 42,
-      prompt: "review this payment",
+describe("strandsJudgeRequest", () => {
+  it("pins checkpoint and five frozen questions", () => {
+    const req = strandsJudgeRequest("review this payment");
+    expect(req.checkpoint).toBe(STRANDS_CHECKPOINT);
+    expect(req.state).toBe("review this payment");
+    expect(req.questions).toHaveLength(5);
+    expect(req.questions[0]).toMatchObject({
+      type: "noul",
+      id: "recipient_match",
     });
   });
 });

@@ -19,7 +19,7 @@ import {
   fundViaFriendbot,
   loadAccount,
   submitTransaction,
-  withQvacDisabled,
+  withStrandsDisabled,
 } from "./helpers/transport.js";
 
 describe("considerWithGraph live ledger gates", () => {
@@ -78,12 +78,12 @@ describe("considerWithGraph live ledger gates", () => {
     expect(paymentsAfter).toBe(paymentsBefore);
   });
 
-  it("graph gate: known corpus edge stays fail-closed without QVAC (no submit)", async (ctx) => {
+  it("graph gate: known corpus edge stays fail-closed without strands-decider (no submit)", async (ctx) => {
     if (!skipUnlessLive(ctx)) {
       return;
     }
 
-    await withQvacDisabled(async () => {
+    await withStrandsDisabled(async () => {
       const LIVE_HORIZON = await liveHorizon();
       assertLocalHorizon(LIVE_HORIZON);
 

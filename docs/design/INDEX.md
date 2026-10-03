@@ -20,7 +20,10 @@ Cada decisión tiene un id estable `DEC-XXXX`. El planner la escribe. El worker 
 | DEC-0013 | [Budget signer identity](DEC-0013-budget-signer-identity.md) | accepted | stellar |
 | DEC-0014 | [ALAIA Verify 1](DEC-0014-verify-standard.md) | accepted | laya, judge, gateway, receipt |
 | DEC-0015 | [Grant, compuerta y conformidad](DEC-0015-grant-gate-conformance.md) | accepted | policy, receipt, laya |
+| DEC-0016 | [strands-decider ask](DEC-0016-strands-decider-cli.md) | accepted | judge, receipt, gateway, live |
+| DEC-0017 | [Mapika decider-0.8b checkpoint](DEC-0017-mapika-decider-0.8b-checkpoint.md) | accepted | judge, receipt, gateway, live |
+| DEC-0018 | [System One judge adapter](DEC-0018-system-one-judge-adapter.md) | accepted | judge, gateway, receipt, live |
 
 Plantilla: `_template.md`. Requisitos vigentes: `REQ-0002-verify.md`.
 Estándar: `ALAIA-VERIFY-1.md`. REQ-0001 queda como preflight.
-El código aún no implementa Verify 1. Pausa de carga de modelos por instrucción del usuario.
+El código aún no implementa Verify 1. DEC-0016 quita QVAC; el arranque es `strands-decider ask`. DEC-0017 fija el checkpoint `Mapika/decider-0.8b`. DEC-0018 modela el judge como adapter System One (`ALAIA_JUDGE_ADAPTER`, default `decider-0.8b`). Cargar el bf16 no es criterio de hecho de las hojas.

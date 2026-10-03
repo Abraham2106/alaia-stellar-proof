@@ -10,7 +10,7 @@ import {
 import {
   normalizeMemoHex,
   policyInput,
-  requireLiveQvac,
+  requireLiveStrands,
   skipUnlessLive,
 } from "./helpers/context.js";
 import { liveHorizon } from "./helpers/horizon.js";
@@ -77,11 +77,11 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     expect(recoveryCodes?.transaction).toBe("tx_bad_auth");
   });
 
-  it("submits only a payment approved by the real QVAC judge and anchors its receipt", async (ctx) => {
+  it("submits only a payment approved by the real strands-decider judge and anchors its receipt", async (ctx) => {
     if (!skipUnlessLive(ctx)) {
       return;
     }
-    requireLiveQvac();
+    requireLiveStrands();
 
     const LIVE_HORIZON = await liveHorizon();
     assertLocalHorizon(LIVE_HORIZON);
@@ -119,7 +119,11 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
       );
     }
     expect(allow.envelope).not.toBeNull();
-    expect(allow.receipt.judge).toMatchObject({ model: "Qwen3-4B", label: "allow", codes: ["ok"] });
+    expect(allow.receipt.judge).toMatchObject({
+      model: "decider-0.8b",
+      label: "allow",
+      codes: ["ok"],
+    });
 
     let signed = signEnvelope(allow.envelope!.xdr, signerA.secret());
     signed = signEnvelope(signed, signerB.secret());

@@ -3,8 +3,8 @@ import { createServer, type Server } from "node:http";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { STANDALONE_PASSPHRASE } from "@alaia/localnet";
 import { assertStandaloneHorizonRoot, isHorizonApi } from "./helpers/horizon.js";
-import { fundViaFriendbot, localHorizonFetch, withQvacDisabled } from "./helpers/transport.js";
-import { requireLiveQvac, skipUnlessLive } from "./helpers/context.js";
+import { fundViaFriendbot, localHorizonFetch, withStrandsDisabled } from "./helpers/transport.js";
+import { requireLiveStrands, skipUnlessLive } from "./helpers/context.js";
 
 let server: Server | undefined;
 
@@ -166,10 +166,10 @@ describe("Horizon transport boundary (fixture, not Qwen/Horizon integration)", (
     expect(urls.every((url) => url.includes("127.0.0.1:9"))).toBe(true);
   });
 
-  it("requireLiveQvac rejects ALAIA_QVAC=0 without a live model", () => {
-    vi.stubEnv("ALAIA_QVAC", "0");
+  it("requireLiveStrands rejects ALAIA_STRANDS=0 without a live model", () => {
+    vi.stubEnv("ALAIA_STRANDS", "0");
     delete process.env.ALAIA_LIVE;
-    expect(() => requireLiveQvac()).toThrow(/ALAIA_QVAC=1/);
+    expect(() => requireLiveStrands()).toThrow(/ALAIA_STRANDS=1/);
   });
 
   it("skipUnlessLive does not touch fetch without ALAIA_LIVE", async () => {
@@ -189,33 +189,33 @@ describe("Horizon transport boundary (fixture, not Qwen/Horizon integration)", (
     await expect(resolveLiveHorizon()).rejects.toThrow(/not a reachable standalone Horizon/);
   });
 
-  it("withQvacDisabled restores stubbed ALAIA_QVAC when callback throws", async () => {
-    vi.stubEnv("ALAIA_QVAC", "1");
+  it("withStrandsDisabled restores stubbed ALAIA_STRANDS when callback throws", async () => {
+    vi.stubEnv("ALAIA_STRANDS", "1");
     await expect(
-      withQvacDisabled(async () => {
-        expect(process.env.ALAIA_QVAC).toBe("0");
+      withStrandsDisabled(async () => {
+        expect(process.env.ALAIA_STRANDS).toBe("0");
         throw new Error("callback fail");
       }),
     ).rejects.toThrow("callback fail");
-    expect(process.env.ALAIA_QVAC).toBe("1");
+    expect(process.env.ALAIA_STRANDS).toBe("1");
   });
 
-  it("withQvacDisabled restores ALAIA_QVAC after callback failure", async () => {
-    process.env.ALAIA_QVAC = "1";
+  it("withStrandsDisabled restores ALAIA_STRANDS after callback failure", async () => {
+    process.env.ALAIA_STRANDS = "1";
     await expect(
-      withQvacDisabled(async () => {
-        expect(process.env.ALAIA_QVAC).toBe("0");
+      withStrandsDisabled(async () => {
+        expect(process.env.ALAIA_STRANDS).toBe("0");
         throw new Error("callback fail");
       }),
     ).rejects.toThrow("callback fail");
-    expect(process.env.ALAIA_QVAC).toBe("1");
+    expect(process.env.ALAIA_STRANDS).toBe("1");
   });
 
-  it("withQvacDisabled deletes ALAIA_QVAC when previously unset", async () => {
-    delete process.env.ALAIA_QVAC;
-    await withQvacDisabled(async () => {
-      expect(process.env.ALAIA_QVAC).toBe("0");
+  it("withStrandsDisabled deletes ALAIA_STRANDS when previously unset", async () => {
+    delete process.env.ALAIA_STRANDS;
+    await withStrandsDisabled(async () => {
+      expect(process.env.ALAIA_STRANDS).toBe("0");
     });
-    expect(process.env.ALAIA_QVAC).toBeUndefined();
+    expect(process.env.ALAIA_STRANDS).toBeUndefined();
   });
 });

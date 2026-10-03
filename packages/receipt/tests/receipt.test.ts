@@ -4,6 +4,7 @@ import {
   receiptMemoHash,
   type Receipt,
 } from "../src/index.ts";
+import { parseReceiptUnknown } from "../src/parse-receipt.ts";
 
 function sampleReceipt(overrides: Partial<Receipt> = {}): Receipt {
   return {
@@ -70,6 +71,47 @@ describe("canonicalReceiptBytes", () => {
     expect(text).toBe(
       '{"amountStroops":"10000000","asset":"native","decision":"allow","destination":"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF","feeStroops":"100","policyVersion":"1","reasons":["a","b"]}',
     );
+  });
+});
+
+describe("parseReceiptUnknown judge.model", () => {
+  const judgeBase = {
+    requestHash: "a".repeat(64),
+    label: "allow",
+    codes: ["ok"],
+  };
+
+  it("accepts decider-0.8b (DEC-0017)", () => {
+    const parsed = parseReceiptUnknown({
+      ...sampleReceipt(),
+      judge: { ...judgeBase, model: "decider-0.8b" },
+    });
+    expect(parsed.judge?.model).toBe("decider-0.8b");
+  });
+
+  it("accepts strands-decider-2B-hobson-v19 (DEC-0016 historical)", () => {
+    const parsed = parseReceiptUnknown({
+      ...sampleReceipt(),
+      judge: { ...judgeBase, model: "strands-decider-2B-hobson-v19" },
+    });
+    expect(parsed.judge?.model).toBe("strands-decider-2B-hobson-v19");
+  });
+
+  it("accepts historical Qwen3-4B", () => {
+    const parsed = parseReceiptUnknown({
+      ...sampleReceipt(),
+      judge: { ...judgeBase, model: "Qwen3-4B" },
+    });
+    expect(parsed.judge?.model).toBe("Qwen3-4B");
+  });
+
+  it("rejects unknown judge models", () => {
+    expect(() =>
+      parseReceiptUnknown({
+        ...sampleReceipt(),
+        judge: { ...judgeBase, model: "other-checkpoint" },
+      }),
+    ).toThrow(/decider-0\.8b, strands-decider-2B-hobson-v19, or Qwen3-4B/);
   });
 });
 

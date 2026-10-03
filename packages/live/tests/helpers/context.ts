@@ -20,9 +20,9 @@ export function skipUnlessLive(ctx: LiveTestContext): boolean {
   return true;
 }
 
-export function requireLiveQvac(): void {
-  if (process.env.ALAIA_QVAC !== "1") {
-    throw new Error("ALAIA_LIVE=1 requires local Horizon and ALAIA_QVAC=1");
+export function requireLiveStrands(): void {
+  if (process.env.ALAIA_STRANDS !== "1") {
+    throw new Error("ALAIA_LIVE=1 requires local Horizon and ALAIA_STRANDS=1");
   }
 }
 

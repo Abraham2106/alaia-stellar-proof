@@ -187,17 +187,17 @@ export async function fetchTransaction(
   return (await res.json()) as { memo_type: string; memo: string };
 }
 
-/** DEC-0007: live graph control without QVAC restores env even when fn throws */
-export async function withQvacDisabled<T>(fn: () => Promise<T> | T): Promise<T> {
-  const previous = process.env.ALAIA_QVAC;
-  process.env.ALAIA_QVAC = "0";
+/** DEC-0016: live graph control without strands-decider restores env even when fn throws */
+export async function withStrandsDisabled<T>(fn: () => Promise<T> | T): Promise<T> {
+  const previous = process.env.ALAIA_STRANDS;
+  process.env.ALAIA_STRANDS = "0";
   try {
     return await fn();
   } finally {
     if (previous === undefined) {
-      delete process.env.ALAIA_QVAC;
+      delete process.env.ALAIA_STRANDS;
     } else {
-      process.env.ALAIA_QVAC = previous;
+      process.env.ALAIA_STRANDS = previous;
     }
   }
 }

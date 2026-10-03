@@ -184,7 +184,7 @@ describe("considerWithGraph", () => {
     expect(judge).not.toHaveBeenCalled();
   });
 
-  it("policy allow + known matching edge => judge path without QVAC (fail closed)", async () => {
+  it("policy allow + known matching edge => judge path without strands (fail closed)", async () => {
     const judgeModule = await vi.importActual<typeof import("@alaia/judge")>("@alaia/judge");
     judge.mockImplementation(judgeModule.runJudge);
     const edge = CORPUS_PAYMENTS[2]!;

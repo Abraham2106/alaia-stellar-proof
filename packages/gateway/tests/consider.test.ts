@@ -35,7 +35,7 @@ describe("consider: required judge authorization", () => {
     expect(prompt.sourcePublic).toBe(input.sourcePublic);
     expect(result.decision).toBe("allow");
     expect(result.policyDecision).toBe("allow");
-    expect(result.receipt.judge).toMatchObject({ model: "Qwen3-4B", label: "allow", codes: ["ok"] });
+    expect(result.receipt.judge).toMatchObject({ model: "decider-0.8b", label: "allow", codes: ["ok"] });
     expect(result.receipt.judge?.requestHash).toMatch(/^[0-9a-f]{64}$/);
     expect(result.memoHash).toBe(receiptMemoHash(result.receipt));
     const tx = new Transaction(result.envelope!.xdr, STANDALONE_PASSPHRASE);

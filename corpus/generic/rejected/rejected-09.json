@@ -1,0 +1,36 @@
+{
+  "id": "rejected-09",
+  "expected": "deny",
+  "reason": "over_fee",
+  "state": {
+    "network": "Standalone Network ; February 2017",
+    "sourcePublic": "GBI42DJHFYYQ3CB2TZFDXQ2X24S5VJ6ZKFMEPFEDJYA5MGDOIHYPF3X6",
+    "sequence": "42",
+    "policyVersion": "budget-v1",
+    "policy": {
+      "maxAmountStroops": "10000000",
+      "maxFeeStroops": "100000",
+      "allowedDestinations": [
+        "GCA2KQXP6S4ISU2HICI62V554BWFC7D7X6QSZQ5DDPD53MSMJHL6RW2O"
+      ],
+      "allowedAssets": [
+        {
+          "kind": "native"
+        }
+      ]
+    },
+    "payment": {
+      "destination": "GCA2KQXP6S4ISU2HICI62V554BWFC7D7X6QSZQ5DDPD53MSMJHL6RW2O",
+      "asset": {
+        "kind": "native"
+      },
+      "amount": "5000000",
+      "feeStroops": "250000",
+      "operations": [
+        "payment"
+      ]
+    },
+    "userIntent": "Pay approved vendor",
+    "untrustedEvidence": null
+  }
+}
