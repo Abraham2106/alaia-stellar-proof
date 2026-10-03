@@ -11,7 +11,9 @@ const CREDIT_ASSET_PATTERN = /^credit:[^:]+:[^:]+$/;
 const RECEIPT_DECISIONS = new Set<ReceiptDecision>(["allow", "deny", "escalate"]);
 const JUDGE_LABELS = new Set(["allow", "deny", "escalate"]);
 // DEC-0016: local strands-decider ask; no QVAC
+// DEC-0017: decider-0.8b for new receipts; parse historical 2B and Qwen3-4B
 const JUDGE_MODELS = new Set<NonNullable<Receipt["judge"]>["model"]>([
+  "decider-0.8b",
   "strands-decider-2B-hobson-v19",
   "Qwen3-4B",
 ]);
@@ -67,7 +69,7 @@ function parseJudge(value: unknown): Receipt["judge"] {
   const model = assertMetadataString(judge.model, "receipt.judge.model");
   if (!JUDGE_MODELS.has(model as NonNullable<Receipt["judge"]>["model"])) {
     throw new Error(
-      "receipt.judge.model must be strands-decider-2B-hobson-v19 or Qwen3-4B",
+      "receipt.judge.model must be decider-0.8b, strands-decider-2B-hobson-v19, or Qwen3-4B",
     );
   }
   const requestHash = assertString(judge.requestHash, "receipt.judge.requestHash");

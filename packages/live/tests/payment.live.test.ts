@@ -120,7 +120,7 @@ describe("local Classic payment slice (Quickstart standalone)", () => {
     }
     expect(allow.envelope).not.toBeNull();
     expect(allow.receipt.judge).toMatchObject({
-      model: "strands-decider-2B-hobson-v19",
+      model: "decider-0.8b",
       label: "allow",
       codes: ["ok"],
     });

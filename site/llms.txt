@@ -1,6 +1,6 @@
 # ALAIA
 
-> Pasarela de políticas local para pagos que un agente de IA quiere hacer en Stellar Classic. Reglas deterministas, un grafo sintético de destinos y un juez local (strands-decider 2B por CLI) deciden; el modelo no firma ni amplía permisos. Cuenta de presupuesto 2-de-2 con master en peso 0. El hash del recibo va en MEMO_HASH y ancla su integridad; no demuestra que el juez se ejecutó. Demo local sobre Stellar Quickstart; no usa mainnet.
+> Pasarela de políticas local para pagos que un agente de IA quiere hacer en Stellar Classic. Reglas deterministas, un grafo sintético de destinos y un juez local (Mapika decider-0.8b por CLI strands-decider ask) deciden; el modelo no firma ni amplía permisos. Cuenta de presupuesto 2-de-2 con master en peso 0. El hash del recibo va en MEMO_HASH y ancla su integridad; no demuestra que el juez se ejecutó. Demo local sobre Stellar Quickstart; no usa mainnet.
 
 Dominio canónico: [TBD: dominio]. Las rutas de abajo son relativas al sitio.
 

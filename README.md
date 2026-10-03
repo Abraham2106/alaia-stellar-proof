@@ -10,7 +10,7 @@ Ese camino todavía no está en el código.
 
 ## Flujo actual
 
-TypeScript (DEC-0003), Stellar Quickstart standalone y strands-decider 2B por CLI local (DEC-0016).
+TypeScript (DEC-0003), Stellar Quickstart standalone y Mapika decider-0.8b por CLI local `strands-decider ask` (DEC-0016, DEC-0017).
 consider() evalúa policy antes del judge obligatorio. Solo ambos allow producen
 un envelope; el caller comprueba decision y envelope antes de firmar.
 considerWithGraph() exige que la pareja del grafo coincida con el pago real:

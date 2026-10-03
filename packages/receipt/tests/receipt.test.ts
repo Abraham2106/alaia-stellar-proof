@@ -81,7 +81,15 @@ describe("parseReceiptUnknown judge.model", () => {
     codes: ["ok"],
   };
 
-  it("accepts strands-decider-2B-hobson-v19 (DEC-0016)", () => {
+  it("accepts decider-0.8b (DEC-0017)", () => {
+    const parsed = parseReceiptUnknown({
+      ...sampleReceipt(),
+      judge: { ...judgeBase, model: "decider-0.8b" },
+    });
+    expect(parsed.judge?.model).toBe("decider-0.8b");
+  });
+
+  it("accepts strands-decider-2B-hobson-v19 (DEC-0016 historical)", () => {
     const parsed = parseReceiptUnknown({
       ...sampleReceipt(),
       judge: { ...judgeBase, model: "strands-decider-2B-hobson-v19" },
@@ -103,7 +111,7 @@ describe("parseReceiptUnknown judge.model", () => {
         ...sampleReceipt(),
         judge: { ...judgeBase, model: "other-checkpoint" },
       }),
-    ).toThrow(/strands-decider-2B-hobson-v19 or Qwen3-4B/);
+    ).toThrow(/decider-0\.8b, strands-decider-2B-hobson-v19, or Qwen3-4B/);
   });
 });
 

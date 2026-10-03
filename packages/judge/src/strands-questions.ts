@@ -1,8 +1,9 @@
 // DEC-0016: local strands-decider ask; no QVAC
+// DEC-0017: Mapika/decider-0.8b checkpoint; strands-decider ask unchanged
 // DEC-0014: frozen Verify 1 question set
 
-export const STRANDS_CHECKPOINT = "StrandsAgents/strands-decider-2B-hobson-v19";
-export const STRANDS_MODEL = "strands-decider-2B-hobson-v19";
+export const STRANDS_CHECKPOINT = "Mapika/decider-0.8b";
+export const STRANDS_MODEL = "decider-0.8b";
 
 export type StrandsNoulQuestion = {
   type: "noul";

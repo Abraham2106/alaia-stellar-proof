@@ -93,7 +93,7 @@
             </li>
             <li class="gate">
               <span class="gate-step">juez</span>
-              <span class="gate-name">Juez local strands-decider 2B</span>
+              <span class="gate-name">Juez local decider-0.8b</span>
               <span class="gate-fn">runJudge() → applyJudge()</span>
               <span class="gate-exit"><span class="st st-deny">✕ deny</span> · <span class="st st-escalate">◇ escalate</span> · sin runtime → envelope: null</span>
             </li>
@@ -131,7 +131,7 @@
           </li>
           <li>
             <h3>Un juez local emite el veredicto.</h3>
-            <p>Si las reglas permiten, un juez local — strands-decider 2B, por <code>strands-decider ask</code> — devuelve un veredicto en JSON. Solo <code>allow</code> con el código <code>ok</code> deja seguir. Si las reglas rechazan, el juez no se consulta.</p>
+            <p>Si las reglas permiten, un juez local — Mapika decider-0.8b, por <code>strands-decider ask</code> — devuelve un veredicto en JSON. Solo <code>allow</code> con el código <code>ok</code> deja seguir. Si las reglas rechazan, el juez no se consulta.</p>
           </li>
           <li>
             <h3>El código firma y envía.</h3>
@@ -335,7 +335,7 @@ export interface Receipt {
   reasons: string[];
   /** Integrity evidence only, not an attestation of model execution. */
   judge?: {
-    model: "strands-decider-2B-hobson-v19";
+    model: "decider-0.8b";
     requestHash: string;
     label: "allow" | "deny" | "escalate";
     codes: string[];

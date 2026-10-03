@@ -66,7 +66,7 @@ describe("DEC-0010 judgeRequestJson preimage", () => {
     const evidence = "Factura #42 — €500";
     const result = await consider(baseInput({ userIntent: intent, evidence }));
     const parsed = JSON.parse(result.judgeRequestJson!) as ReturnType<typeof strandsJudgeRequest>;
-    expect(parsed.checkpoint).toBe("StrandsAgents/strands-decider-2B-hobson-v19");
+    expect(parsed.checkpoint).toBe("Mapika/decider-0.8b");
     const inner = JSON.parse(parsed.state);
     expect(inner.userIntent).toBe(intent);
     expect(inner.untrustedEvidence).toBe(evidence);
