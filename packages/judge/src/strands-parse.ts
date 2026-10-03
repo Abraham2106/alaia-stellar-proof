@@ -1,10 +1,14 @@
 // DEC-0016: local strands-decider ask; no QVAC
+// DEC-0017: Mapika checkpoint via decider.infer; see packages/judge/scripts/decider-ask.py
 
 import type { JudgeCode, JudgeLabel, JudgeVerdict } from "./types.js";
 
 const LABELS: ReadonlySet<string> = new Set(["allow", "escalate", "deny"]);
-// strands-decider 0.1.0 writes the library id here, not the checkpoint.
-const CLI_MODEL = "strands-decider-0.1.0";
+// stdout `model` is the inference library id, not the HF checkpoint (DEC-0017).
+const ACCEPTED_CLI_MODELS: ReadonlySet<string> = new Set([
+  "strands-decider-0.1.0",
+  "decider-0.8b-v1",
+]);
 
 function stripAnsi(text: string): string {
   return text.replace(/\u001b\[[0-9;]*[A-Za-z]/g, "");
@@ -77,7 +81,7 @@ export function parseStrandsDeciderJson(text: string): JudgeVerdict {
   }
 
   const root = parsed as Record<string, unknown>;
-  if (root.model !== CLI_MODEL) {
+  if (typeof root.model !== "string" || !ACCEPTED_CLI_MODELS.has(root.model)) {
     return schemaInvalidVerdict();
   }
 

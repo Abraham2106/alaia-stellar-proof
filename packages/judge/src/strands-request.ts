@@ -1,4 +1,5 @@
 // DEC-0016: local strands-decider ask; no QVAC
+// DEC-0017: argv passed to decider-ask.py (same shape as strands-decider ask)
 
 import {
   STRANDS_CHECKPOINT,

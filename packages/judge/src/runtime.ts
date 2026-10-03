@@ -1,4 +1,5 @@
 // DEC-0016: local strands-decider ask; no QVAC
+// DEC-0017: decider-ask.py for Mapika/decider-0.8b
 
 import { parseStrandsDeciderJson } from "./strands-parse.js";
 import { runStrandsDecider } from "./strands-runner.js";

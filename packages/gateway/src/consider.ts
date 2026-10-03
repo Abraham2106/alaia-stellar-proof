@@ -98,7 +98,7 @@ export async function consider(proposed: ConsiderInput): Promise<ConsiderResult>
       payment: { ...payment, amount: payment.amount.toString(), feeStroops: payment.feeStroops.toString() },
       userIntent: input.userIntent ?? null, untrustedEvidence: input.evidence ?? null,
     });
-    // DEC-0016: preimage is the strands-decider ask body, not a QVAC chat completion.
+    // DEC-0016 / DEC-0017: preimage is the decider-ask.py argv body, not a QVAC chat completion.
     const request = strandsJudgeRequest(prompt);
     judgeRequestJson = JSON.stringify(request);
     let verdict: JudgeVerdict;

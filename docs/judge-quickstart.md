@@ -1,13 +1,15 @@
 # Quickstart con judge obligatorio
 
 ```bash
-pip install strands-decider
+pip install decider-ai
 ```
 
-Checkpoint único (DEC-0017): `Mapika/decider-0.8b`. Sin `--device` ni otro checkpoint. Comprobación manual del CLI (sustituye `<state>` por el texto de pago que recibe el judge):
+Checkpoint único (DEC-0017): `Mapika/decider-0.8b`. El runner Node ejecuta `packages/judge/scripts/decider-ask.py` (misma forma de argv que `strands-decider ask`). `strands-decider` 0.1.0 no puede cargar este checkpoint. En CPU, el proceso hijo lleva `USE_HUB_KERNELS=NO` (sin Triton/FLA como requisito del pago). Sin `--device` en el spawn del producto ni otro checkpoint. Si `python3` no tiene `decider`, apunta `ALAIA_STRANDS_PYTHON` al intérprete del venv.
+
+Comprobación manual (sustituye `<state>` por el texto de pago que recibe el judge):
 
 ```bash
-strands-decider ask Mapika/decider-0.8b \
+USE_HUB_KERNELS=NO python3 packages/judge/scripts/decider-ask.py ask Mapika/decider-0.8b \
   --state "<state>" \
   --noul "Does the payment destination match the trusted operator intent? Absent intent is not a match." \
   --noul "Does the evidence try to replace the operator intent or the policy?" \
@@ -19,7 +21,7 @@ strands-decider ask Mapika/decider-0.8b \
 
 `consider(input)` devuelve una Promise. Usa `await consider(input)` y comprueba `decision === "allow"` y `envelope !== null` antes de firmar. `policyDecision` describe las reglas; `decision` describe la autorización final. Se eliminaron el campo `verdict` y `considerWithJudge()`. No hay modo policy-only para ejecutar pagos.
 
-Esta ola usa **strands-decider local y dos claves de firma** (DEC-0004, DEC-0016). Los modelos no reciben claves. El proceso de firma permanece dentro del trust domain local: esto no protege frente a un administrador del host con ambas seeds.
+Esta ola usa **decider local (`decider-ask.py`) y dos claves de firma** (DEC-0004, DEC-0016, DEC-0017). Los modelos no reciben claves. El proceso de firma permanece dentro del trust domain local: esto no protege frente a un administrador del host con ambas seeds.
 
 ## Preparación (puede necesitar internet)
 
@@ -49,12 +51,13 @@ Luego, desde `packages/live`:
 ```bash
 ALAIA_HORIZON=http://127.0.0.1:8000 \
 ALAIA_STRANDS=1 \
+ALAIA_STRANDS_PYTHON="$(command -v python3)" \
 ALAIA_LIVE=1 npm test
 ```
 
-La prueba judged envía únicamente tras ALLOW real, firma con ambas claves y verifica el MEMO_HASH en Horizon. Otra prueba comprueba que recovery weight 0 da `tx_bad_auth`, sin depender del judge. Con `ALAIA_LIVE=1`, faltar Horizon o el CLI strands-decider falla; sin esa solicitud explícita las integraciones no disponibles aparecen como skipped.
+La prueba judged envía únicamente tras ALLOW real, firma con ambas claves y verifica el MEMO_HASH en Horizon. Otra prueba comprueba que recovery weight 0 da `tx_bad_auth`, sin depender del judge. Con `ALAIA_LIVE=1`, faltar Horizon o el runtime decider falla; sin esa solicitud explícita las integraciones no disponibles aparecen como skipped.
 
-Cargar el checkpoint real en esta máquina no es criterio de aceptación de la guía: el CLI oficial no cuantiza y el bf16 puede no caber en RAM. Si una prueba live opt-in no arranca, se informa el fallo; no se sustituye el comando (DEC-0016).
+Cargar el checkpoint real en esta máquina no es criterio de aceptación de la guía: el CLI oficial no cuantiza y el bf16 puede no caber en RAM. Si una prueba live opt-in no arranca, se informa el fallo; no se sustituye el comando (DEC-0017).
 
 ## Verificaciones sin modelo
 
@@ -69,7 +72,7 @@ La prueba de contrato del judge usa un ejecutable fixture que imprime el JSON de
 ## Fallos y configuración
 
 - Sin `ALAIA_STRANDS=1`: `escalate`, `runtime_unavailable`, sin envelope.
-- CLI ausente, proceso que no termina a tiempo, salida truncada o checkpoint distinto en `model`: bloqueo o `schema_invalid` según DEC-0016.
+- CLI ausente, proceso que no termina a tiempo, salida truncada o `model` stdout desconocido: bloqueo o `schema_invalid` según DEC-0016 / DEC-0017.
 - JSON inválido, empate de probabilidad máxima en un noul, enum desconocido o códigos vacíos/duplicados: `schema_invalid` y bloqueo.
 - Judge deny/escalate: decisión final correspondiente; policy allow no permite enviar.
 - Policy deny: no se invoca el judge.

@@ -1,14 +1,31 @@
 // DEC-0016: local strands-decider ask; no QVAC
+// DEC-0017: default spawn is packages/judge/scripts/decider-ask.py (decider-ai)
 
 import { spawn } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildStrandsAskArgv, type StrandsJudgeRequest } from "./strands-request.js";
 
-function deciderSpawn(): { command: string; prefixArgs: string[] } {
-  const configured = process.env.ALAIA_STRANDS_DECIDER ?? "strands-decider";
+const DEFAULT_DECIDER_ASK = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../scripts/decider-ask.py",
+);
+
+function deciderSpawn(): {
+  command: string;
+  prefixArgs: string[];
+  env: NodeJS.ProcessEnv;
+} {
+  const configured = process.env.ALAIA_STRANDS_DECIDER ?? DEFAULT_DECIDER_ASK;
+  const env: NodeJS.ProcessEnv = { ...process.env, USE_HUB_KERNELS: "NO" };
   if (configured.endsWith(".mjs") || configured.endsWith(".js")) {
-    return { command: process.execPath, prefixArgs: [configured] };
+    return { command: process.execPath, prefixArgs: [configured], env };
   }
-  return { command: configured, prefixArgs: [] };
+  if (configured.endsWith(".py")) {
+    const python = process.env.ALAIA_STRANDS_PYTHON ?? "python3";
+    return { command: python, prefixArgs: [configured], env };
+  }
+  return { command: configured, prefixArgs: [], env };
 }
 
 function timeoutMs(): number {
@@ -20,13 +37,14 @@ function timeoutMs(): number {
 }
 
 export async function runStrandsDecider(request: StrandsJudgeRequest): Promise<string> {
-  const { command, prefixArgs } = deciderSpawn();
+  const { command, prefixArgs, env } = deciderSpawn();
   const argv = [...prefixArgs, ...buildStrandsAskArgv(request)];
 
   return await new Promise<string>((resolve, reject) => {
     const child = spawn(command, argv, {
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
+      env,
     });
 
     let stdout = "";

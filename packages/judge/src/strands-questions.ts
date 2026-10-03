@@ -1,5 +1,5 @@
 // DEC-0016: local strands-decider ask; no QVAC
-// DEC-0017: Mapika/decider-0.8b checkpoint; strands-decider ask unchanged
+// DEC-0017: Mapika/decider-0.8b via decider-ask.py
 // DEC-0014: frozen Verify 1 question set
 
 export const STRANDS_CHECKPOINT = "Mapika/decider-0.8b";

@@ -60,6 +60,13 @@ describe("parseStrandsDeciderJson", () => {
     });
   });
 
+  it("accepts decider-0.8b-v1 stdout model (DEC-0017)", () => {
+    expect(parseStrandsDeciderJson(sampleJson({ model: "decider-0.8b-v1" }))).toEqual({
+      label: "allow",
+      codes: ["ok"],
+    });
+  });
+
   it("parses JSON that rich colored with ANSI", () => {
     const colored = `\u001b[1m${sampleJson()}\u001b[0m`;
     expect(parseStrandsDeciderJson(colored)).toEqual({
