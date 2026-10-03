@@ -13,7 +13,8 @@ export interface Receipt {
   reasons: string[];
   /** Integrity evidence only, not an attestation of model execution. */
   judge?: {
-    model: "Qwen3-4B";
+    // DEC-0016: new receipts use strands-decider; Qwen3-4B for historical bundles.
+    model: "strands-decider-2B-hobson-v19" | "Qwen3-4B";
     requestHash: string;
     label: "allow" | "deny" | "escalate";
     codes: string[];

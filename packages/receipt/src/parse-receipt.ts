@@ -10,6 +10,11 @@ import type { Receipt, ReceiptAsset, ReceiptDecision } from "./types.js";
 const CREDIT_ASSET_PATTERN = /^credit:[^:]+:[^:]+$/;
 const RECEIPT_DECISIONS = new Set<ReceiptDecision>(["allow", "deny", "escalate"]);
 const JUDGE_LABELS = new Set(["allow", "deny", "escalate"]);
+// DEC-0016: local strands-decider ask; no QVAC
+const JUDGE_MODELS = new Set<NonNullable<Receipt["judge"]>["model"]>([
+  "strands-decider-2B-hobson-v19",
+  "Qwen3-4B",
+]);
 
 function assertPlainObject(value: unknown, label: string): Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
@@ -60,8 +65,10 @@ function parseJudge(value: unknown): Receipt["judge"] {
     }
   }
   const model = assertMetadataString(judge.model, "receipt.judge.model");
-  if (model !== "Qwen3-4B") {
-    throw new Error("receipt.judge.model must be Qwen3-4B");
+  if (!JUDGE_MODELS.has(model as NonNullable<Receipt["judge"]>["model"])) {
+    throw new Error(
+      "receipt.judge.model must be strands-decider-2B-hobson-v19 or Qwen3-4B",
+    );
   }
   const requestHash = assertString(judge.requestHash, "receipt.judge.requestHash");
   assertHex64("receipt.judge.requestHash", requestHash);
@@ -71,7 +78,7 @@ function parseJudge(value: unknown): Receipt["judge"] {
   }
   const codes = assertStringArray(judge.codes, "receipt.judge.codes");
   return {
-    model: "Qwen3-4B",
+    model: model as NonNullable<Receipt["judge"]>["model"],
     requestHash,
     label: label as "allow" | "deny" | "escalate",
     codes,
