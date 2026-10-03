@@ -1,26 +1,27 @@
-import { parseJudgeVerdict } from "./parse.js";
-import { qvacJudgeRequest } from "./qvac.js";
-import { runQvacJudge } from "./qvac-runner.js";
+// DEC-0016: local strands-decider ask; no QVAC
+
+import { parseStrandsDeciderJson } from "./strands-parse.js";
+import { runStrandsDecider } from "./strands-runner.js";
+import { strandsJudgeRequest } from "./strands-request.js";
 import type { JudgeVerdict } from "./types.js";
 
 function runtimeUnavailableVerdict(): JudgeVerdict {
-  // DEC-0004: missing runtime escalates; it does not allow
   return { label: "escalate", codes: ["runtime_unavailable"] };
 }
 
-function qvacEnabled(): boolean {
-  return process.env.ALAIA_QVAC === "1";
+function strandsEnabled(): boolean {
+  return process.env.ALAIA_STRANDS === "1";
 }
 
-export async function runJudge(prompt: string): Promise<JudgeVerdict> {
-  if (!qvacEnabled()) {
+export async function runJudge(state: string): Promise<JudgeVerdict> {
+  if (!strandsEnabled()) {
     return runtimeUnavailableVerdict();
   }
 
   try {
-    const request = qvacJudgeRequest(prompt);
-    const text = await runQvacJudge(request);
-    return parseJudgeVerdict(text);
+    const request = strandsJudgeRequest(state);
+    const text = await runStrandsDecider(request);
+    return parseStrandsDeciderJson(text);
   } catch {
     return runtimeUnavailableVerdict();
   }
