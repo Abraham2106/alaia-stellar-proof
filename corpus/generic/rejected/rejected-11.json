@@ -1,0 +1,37 @@
+{
+  "id": "rejected-11",
+  "expected": "deny",
+  "reason": "admin_operation",
+  "state": {
+    "network": "Standalone Network ; February 2017",
+    "sourcePublic": "GAAOX7C3X3WRDH7VN7BESGECBHXSXUTEH36OXVWXWYA6TNYDRIZOARN6",
+    "sequence": "42",
+    "policyVersion": "budget-v1",
+    "policy": {
+      "maxAmountStroops": "10000000",
+      "maxFeeStroops": "100000",
+      "allowedDestinations": [
+        "GCA2KQXP6S4ISU2HICI62V554BWFC7D7X6QSZQ5DDPD53MSMJHL6RW2O"
+      ],
+      "allowedAssets": [
+        {
+          "kind": "native"
+        }
+      ]
+    },
+    "payment": {
+      "destination": "GCA2KQXP6S4ISU2HICI62V554BWFC7D7X6QSZQ5DDPD53MSMJHL6RW2O",
+      "asset": {
+        "kind": "native"
+      },
+      "amount": "5000000",
+      "feeStroops": "10000",
+      "operations": [
+        "payment",
+        "setOptions"
+      ]
+    },
+    "userIntent": "Pay approved vendor",
+    "untrustedEvidence": null
+  }
+}

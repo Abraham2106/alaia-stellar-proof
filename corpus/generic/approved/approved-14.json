@@ -1,0 +1,36 @@
+{
+  "id": "approved-14",
+  "expected": "allow",
+  "state": {
+    "network": "Standalone Network ; February 2017",
+    "sourcePublic": "GAAA6WJNQXOOJFDRYPCI6AE5B4E5LWBM5SZNYLN7UAC2I3NHFICOI4YN",
+    "sequence": "2",
+    "policyVersion": "budget-v1",
+    "policy": {
+      "maxAmountStroops": "10000000",
+      "maxFeeStroops": "100000",
+      "allowedDestinations": [
+        "GDUFYTXHAKM7KJNVFU6T7L56L7VBMVMPEXOJWJR4UUFQMIQV4YTMG37K"
+      ],
+      "allowedAssets": [
+        {
+          "kind": "native"
+        }
+      ]
+    },
+    "payment": {
+      "destination": "GDUFYTXHAKM7KJNVFU6T7L56L7VBMVMPEXOJWJR4UUFQMIQV4YTMG37K",
+      "asset": {
+        "kind": "native"
+      },
+      "amount": "7500000",
+      "feeStroops": "800",
+      "operations": [
+        "payment"
+      ],
+      "memoHash": "2f5b07bc263f000125ccd98689610e7a35d488b89908e8b8feedd776df46c582"
+    },
+    "userIntent": "Pay 0.75 XLM to GDUFYTXHAKM7KJNVFU6T7L56L7VBMVMPEXOJWJR4UUFQMIQV4YTMG37K.",
+    "untrustedEvidence": "Bill for 0.75 XLM"
+  }
+}

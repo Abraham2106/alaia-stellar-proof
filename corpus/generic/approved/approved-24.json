@@ -1,0 +1,36 @@
+{
+  "id": "approved-24",
+  "expected": "allow",
+  "state": {
+    "network": "Standalone Network ; February 2017",
+    "sourcePublic": "GC667MCD5AYO3COBZP5KD36ANHFJSLI4NVVMKXB53TUYLZD2FYG57X33",
+    "sequence": "12",
+    "policyVersion": "budget-v1",
+    "policy": {
+      "maxAmountStroops": "10000000",
+      "maxFeeStroops": "100000",
+      "allowedDestinations": [
+        "GDBY5Y5HFFUIHFGFO2U6RXN52LGZZ76FQJDG2VMB6BTCN7O53E3RUY4P"
+      ],
+      "allowedAssets": [
+        {
+          "kind": "native"
+        }
+      ]
+    },
+    "payment": {
+      "destination": "GDBY5Y5HFFUIHFGFO2U6RXN52LGZZ76FQJDG2VMB6BTCN7O53E3RUY4P",
+      "asset": {
+        "kind": "native"
+      },
+      "amount": "4800000",
+      "feeStroops": "95000",
+      "operations": [
+        "payment"
+      ],
+      "memoHash": "47be92c950ba66807e12ca07a8cd629e8b3e1caeca8b057508cd3d63f8e9d29b"
+    },
+    "userIntent": "Remit 0.48 XLM to GDBY5Y5HFFUIHFGFO2U6RXN52LGZZ76FQJDG2VMB6BTCN7O53E3RUY4P",
+    "untrustedEvidence": "Ref note ok"
+  }
+}
