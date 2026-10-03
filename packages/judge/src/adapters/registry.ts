@@ -24,4 +24,4 @@ export function activeAdapterId(): string {
 }
 
 registerAdapter(deciderAdapter);
-registerStrandsCliAdapter();
+registerStrandsCliAdapter(registerAdapter);
